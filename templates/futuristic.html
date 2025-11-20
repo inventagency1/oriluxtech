@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORILUXCHAIN - Futuristic Dashboard</title>
+    <link rel="stylesheet" href="/static/css/futuristic.css">
+    <link rel="stylesheet" href="/static/css/smart-contracts.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Animated Particle Background -->
+    <canvas id="particles-canvas"></canvas>
+    
+    <div class="app-container">
+        <!-- GLASSMORPHIC SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>⛓️ ORILUXCHAIN</h2>
+                <p>BLOCKCHAIN v1.0</p>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="overview">
+                    <span class="icon">📊</span>
+                    <span>OVERVIEW</span>
+                </a>
+                <a href="#" class="nav-item" data-section="blockchain">
+                    <span class="icon">🔗</span>
+                    <span>BLOCKCHAIN</span>
+                </a>
+                <a href="#" class="nav-item" data-section="transactions">
+                    <span class="icon">💸</span>
+                    <span>TRANSACTIONS</span>
+                </a>
+                <a href="#" class="nav-item" data-section="wallets">
+                    <span class="icon">💼</span>
+                    <span>WALLETS</span>
+                </a>
+                <a href="#" class="nav-item" data-section="mining">
+                    <span class="icon">⛏️</span>
+                    <span>MINING</span>
+                </a>
+                <a href="#" class="nav-item" data-section="network">
+                    <span class="icon">🌐</span>
+                    <span>NETWORK</span>
+                </a>
+                <a href="#" class="nav-item" data-section="contracts">
+                    <span class="icon">📜</span>
+                    <span>CONTRACTS</span>
+                </a>
+                <a href="#" class="nav-item" data-section="explorer">
+                    <span class="icon">🔍</span>
+                    <span>EXPLORER</span>
+                </a>
+                <a href="#" class="nav-item" data-section="settings">
+                    <span class="icon">⚙️</span>
+                    <span>SETTINGS</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="node-status">
+                    <div class="status-indicator"></div>
+                    <div>
+                        <div class="status-label">NODE STATUS</div>
+                        <div class="status-value">ONLINE</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <!-- GLASSMORPHIC TOP BAR -->
+            <header class="top-bar">
+                <div class="search-bar">
+                    <input type="text" id="globalSearch" placeholder="Search blocks, transactions, addresses...">
+                </div>
+                
+                <div class="top-bar-actions">
+                    <div class="notification-badge">
+                        <span>🔔</span>
+                        <span class="badge" id="notificationCount">0</span>
+                    </div>
+                    <div class="wallet-quick-info">
+                        <span id="topBarBalance">0</span> OLX
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Alert Container -->
+            <div id="alertContainer" style="position: fixed; top: 100px; right: 2rem; z-index: 3000;"></div>
+            
+            <!-- OVERVIEW SECTION -->
+            <section class="section active" id="overview-section">
+                <div class="section-header">
+                    <h1>OVERVIEW</h1>
+                    <div class="section-actions">
+                        <button class="btn btn-secondary" onclick="refreshAll()">🔄 REFRESH</button>
+                    </div>
+                </div>
+                
+                <!-- 3D GLASSMORPHIC METRICS -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon">🔗</div>
+                        <div class="metric-label">TOTAL BLOCKS</div>
+                        <div class="metric-value" id="totalBlocks">0</div>
+                        <div class="metric-change">↗ +1 today</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon">💰</div>
+                        <div class="metric-label">TOTAL BALANCE</div>
+                        <div class="metric-value"><span id="totalBalance">0</span> OLX</div>
+                        <div class="metric-change">↗ +50 last block</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon">⏳</div>
+                        <div class="metric-label">PENDING TX</div>
+                        <div class="metric-value" id="pendingCount">0</div>
+                        <div class="metric-change">transactions</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon">⚡</div>
+                        <div class="metric-label">DIFFICULTY</div>
+                        <div class="metric-value" id="difficultyMetric">0</div>
+                        <div class="metric-change">proof of work</div>
+                    </div>
+                </div>
+                
+                <!-- Charts -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                    <div style="background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 2rem;">
+                        <h3 style="color: var(--gold-primary); margin-bottom: 1rem; font-family: 'Orbitron', sans-serif;">BLOCKS MINED</h3>
+                        <canvas id="blocksChart"></canvas>
+                    </div>
+                    <div style="background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 2rem;">
+                        <h3 style="color: var(--gold-primary); margin-bottom: 1rem; font-family: 'Orbitron', sans-serif;">TRANSACTIONS</h3>
+                        <canvas id="transactionsChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Recent Activity -->
+                <div class="activity-section" style="background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 2rem;">
+                    <h3 style="color: var(--gold-primary); margin-bottom: 1.5rem; font-family: 'Orbitron', sans-serif;">🕐 RECENT ACTIVITY</h3>
+                    <div id="recentActivity"></div>
+                </div>
+            </section>
+            
+            <!-- BLOCKCHAIN SECTION -->
+            <section class="section" id="blockchain-section">
+                <div class="section-header">
+                    <h1>BLOCKCHAIN</h1>
+                    <div class="section-actions">
+                        <button class="btn btn-secondary" onclick="exportBlockchain()">📥 EXPORT</button>
+                        <button class="btn btn-primary" onclick="loadBlockchain()">🔄 REFRESH</button>
+                    </div>
+                </div>
+                
+                <div id="blockchainVisualization" style="display: flex; flex-direction: column; gap: 1.5rem;"></div>
+            </section>
+            
+            <!-- TRANSACTIONS SECTION -->
+            <section class="section" id="transactions-section">
+                <div class="section-header">
+                    <h1>TRANSACTIONS</h1>
+                    <button class="btn btn-primary" onclick="showNewTransactionModal()">+ NEW TRANSACTION</button>
+                </div>
+                
+                <div style="background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 2rem;">
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255, 215, 0, 0.2); padding-bottom: 1rem;">
+                        <button class="tab-btn active" data-tab="pending" style="padding: 0.75rem 1.5rem; background: none; border: none; color: var(--text-secondary); cursor: pointer; font-weight: 600; border-bottom: 2px solid transparent;">PENDING</button>
+                        <button class="tab-btn" data-tab="confirmed" style="padding: 0.75rem 1.5rem; background: none; border: none; color: var(--text-secondary); cursor: pointer; font-weight: 600; border-bottom: 2px solid transparent;">CONFIRMED</button>
+                        <button class="tab-btn" data-tab="all" style="padding: 0.75rem 1.5rem; background: none; border: none; color: var(--text-secondary); cursor: pointer; font-weight: 600; border-bottom: 2px solid transparent;">ALL</button>
+                    </div>
+                    <div id="transactionsList"></div>
+                </div>
+            </section>
+            
+            <!-- WALLETS SECTION -->
+            <section class="section" id="wallets-section">
+                <div class="section-header">
+                    <h1>WALLETS</h1>
+                    <div class="section-actions">
+                        <button class="btn btn-secondary" onclick="importWallet()">📂 IMPORT</button>
+                        <button class="btn btn-primary" onclick="createNewWallet()">+ NEW WALLET</button>
+                    </div>
+                </div>
+                
+                <div id="walletsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;"></div>
+            </section>
+            
+            <!-- MINING SECTION -->
+            <section class="section" id="mining-section">
+                <div class="section-header">
+                    <h1>MINING CENTER</h1>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+                    <div style="background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 2rem;">
+                        <h3 style="color: var(--gold-primary); margin-bottom: 2rem; font-family: 'Orbitron', sans-serif; text-align: center;">MINING STATUS</h3>
+                        
+                        <div id="miningStatus" style="text-align: center; padding: 3rem; background: rgba(255, 215, 0, 0.05); border: 1px solid var(--gold-primary); border-radius: 12px; margin-bottom: 2rem;">
+                            <div style="font-size: 4rem; margin-bottom: 1rem;">⏸️</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--gold-primary);">INACTIVE</div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem;">
+                            <div style="text-align: center; padding: 1rem; background: rgba(255, 255, 255, 0.03); border-radius: 8px;">
+                                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">BLOCKS MINED</div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--gold-primary);" id="minedBlocks">0</div>
+                            </div>
+                            <div style="text-align: center; padding: 1rem; background: rgba(255, 255, 255, 0.03); border-radius: 8px;">
+                                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">TOTAL REWARDS</div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--gold-primary);"><span id="totalRewards">0</span> OLX</div>
+                            </div>
+                            <div style="text-align: center; padding: 1rem; background: rgba(255, 255, 255, 0.03); border-radius: 8px;">
+                                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">LAST TIME</div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--gold-primary);" id="lastMiningTime">-</div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary btn-large" id="mineButton" onclick="startMining()" style="width: 100%; padding: 1.2rem; font-size: 1.2rem;">
+                            ⛏️ START MINING
+                        </button>
+                    </div>
+                    
+                    <div style="background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 2rem;">
+                        <h3 style="color: var(--gold-primary); margin-bottom: 1.5rem; font-family: 'Orbitron', sans-serif;">⚙️ CONFIG</h3>
+                        <div style="margin-bottom: 1.5rem;">
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">DIFFICULTY</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--gold-primary);" id="currentDifficulty">3</div>
+                        </div>
+                        <div style="margin-bottom: 1.5rem;">
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">REWARD PER BLOCK</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--gold-primary);">50 OLX</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">PENDING TX</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--gold-primary);" id="miningPending">0</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- SMART CONTRACTS SECTION -->
+            <section class="section" id="contracts-section">
+                <div class="section-header">
+                    <h1>📜 SMART CONTRACTS</h1>
+                </div>
+                
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="templates">TEMPLATES</button>
+                    <button class="tab-btn" data-tab="deployed">DEPLOYED</button>
+                    <button class="tab-btn" data-tab="interact">INTERACT</button>
+                </div>
+                
+                <!-- Templates Tab -->
+                <div class="tab-content active" id="templates-tab">
+                    <h2 style="color: var(--gold-primary); margin-bottom: 1.5rem; font-family: 'Orbitron', sans-serif;">Deploy from Template</h2>
+                    <div class="templates-grid">
+                        <div class="template-card" data-template="erc20">
+                            <div class="template-icon">🪙</div>
+                            <h3>ERC-20 Token</h3>
+                            <p>Create your own fungible token</p>
+                        </div>
+                        
+                        <div class="template-card" data-template="multisig">
+                            <div class="template-icon">🔐</div>
+                            <h3>MultiSig Wallet</h3>
+                            <p>Multi-signature wallet for security</p>
+                        </div>
+                        
+                        <div class="template-card" data-template="escrow">
+                            <div class="template-icon">🤝</div>
+                            <h3>Escrow Contract</h3>
+                            <p>Secure transactions with guarantee</p>
+                        </div>
+                        
+                        <div class="template-card" data-template="nft">
+                            <div class="template-icon">🎨</div>
+                            <h3>NFT Collection</h3>
+                            <p>Create unique digital assets</p>
+                        </div>
+                        
+                        <div class="template-card" data-template="staking">
+                            <div class="template-icon">💎</div>
+                            <h3>Staking Pool</h3>
+                            <p>Staking with automatic rewards</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Deployed Contracts Tab -->
+                <div class="tab-content" id="deployed-tab" style="display: none;">
+                    <h2 style="color: var(--gold-primary); margin-bottom: 1.5rem; font-family: 'Orbitron', sans-serif;">Deployed Contracts</h2>
+                    <div id="contractsList"></div>
+                </div>
+                
+                <!-- Interact Tab -->
+                <div class="tab-content" id="interact-tab" style="display: none;">
+                    <div id="interactionContainer"></div>
+                </div>
+            </section>
+            
+            <!-- Other sections similar structure... -->
+            <section class="section" id="network-section">
+                <div class="section-header">
+                    <h1>NETWORK</h1>
+                    <button class="btn btn-primary" onclick="showAddNodeModal()">+ ADD NODE</button>
+                </div>
+                <div id="nodesList"></div>
+            </section>
+            
+            <section class="section" id="explorer-section">
+                <div class="section-header">
+                    <h1>EXPLORER</h1>
+                </div>
+                <div id="explorerResults"></div>
+            </section>
+            
+            <section class="section" id="settings-section">
+                <div class="section-header">
+                    <h1>SETTINGS</h1>
+                </div>
+                <div id="settingsContainer"></div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- Modal -->
+    <div id="modalOverlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 2000; align-items: center; justify-content: center;">
+        <div id="transactionModal" style="background: rgba(18, 18, 26, 0.95); backdrop-filter: blur(20px); border: 2px solid var(--gold-primary); border-radius: 20px; width: 90%; max-width: 500px; box-shadow: 0 20px 60px rgba(255, 215, 0, 0.3);">
+            <div style="padding: 1.5rem; border-bottom: 1px solid var(--gold-primary); display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="color: var(--gold-primary); font-family: 'Orbitron', sans-serif;">NEW TRANSACTION</h2>
+                <button onclick="closeModal()" style="background: none; border: none; font-size: 2rem; color: var(--gold-primary); cursor: pointer;">&times;</button>
+            </div>
+            <div style="padding: 1.5rem;">
+                <form id="newTransactionForm">
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600;">SENDER</label>
+                        <input type="text" id="txSender" required style="width: 100%; padding: 0.75rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 8px; color: var(--text-primary);">
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600;">RECIPIENT</label>
+                        <input type="text" id="txRecipient" required style="width: 100%; padding: 0.75rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 8px; color: var(--text-primary);">
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600;">AMOUNT (OLX)</label>
+                        <input type="number" id="txAmount" step="0.01" min="0.01" required style="width: 100%; padding: 0.75rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 8px; color: var(--text-primary);">
+                    </div>
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">CANCEL</button>
+                        <button type="submit" class="btn btn-primary">SEND</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Deploy Contract Modal -->
+    <div id="deployModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div id="modalIcon" class="modal-icon">📜</div>
+                <div class="modal-title-section">
+                    <h2 id="modalTitle">Deploy Contract</h2>
+                    <p id="modalDescription">Fill in the parameters to deploy your contract</p>
+                </div>
+            </div>
+            <div class="modal-body">
+                <form id="deployContractForm">
+                    <div id="contractParams"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="smartContractsUI.closeModal('deployModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">🚀 Deploy Contract</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Function Call Modal -->
+    <div id="functionCallModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-icon">⚡</div>
+                <div class="modal-title-section">
+                    <h2 id="functionModalTitle">Call Function</h2>
+                    <p id="functionModalContract">Contract: 0x...</p>
+                </div>
+            </div>
+            <div class="modal-body">
+                <form id="functionCallForm">
+                    <div id="functionParams"></div>
+                    <div id="functionResult"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="smartContractsUI.closeModal('functionCallModal')">Close</button>
+                        <button type="button" id="callFunctionBtn" class="btn btn-primary">⚡ Execute</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Contract Details Modal -->
+    <div id="contractDetailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-icon">📋</div>
+                <div class="modal-title-section">
+                    <h2>Contract Details</h2>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div id="detailsContent"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="smartContractsUI.closeModal('contractDetailsModal')">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/particles.js"></script>
+    <script src="/static/js/animations.js"></script>
+    <script src="/static/js/smart-contracts.js"></script>
+    <script src="/static/js/dashboard.js"></script>
+    
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.tab;
+                
+                // Update buttons
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Update content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.style.display = 'none';
+                });
+                document.getElementById(`${tab}-tab`).style.display = 'block';
+                
+                // Load contracts when switching to deployed tab
+                if (tab === 'deployed' && smartContractsUI) {
+                    smartContractsUI.loadContracts();
+                }
+            });
+        });
+        
+        // Close modals on outside click
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

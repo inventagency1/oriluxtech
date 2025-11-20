@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oriluxchain Dashboard</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>⛓️ Oriluxchain</h1>
+            <p>Dashboard de Blockchain en Tiempo Real</p>
+        </div>
+
+        <!-- Alert Container -->
+        <div id="alertContainer"></div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Longitud de Cadena</h3>
+                <div class="value" id="chainLength">0</div>
+                <div class="label">bloques totales</div>
+            </div>
+            <div class="stat-card">
+                <h3>Dificultad</h3>
+                <div class="value" id="difficulty">0</div>
+                <div class="label">ceros requeridos</div>
+            </div>
+            <div class="stat-card">
+                <h3>Transacciones</h3>
+                <div class="value" id="totalTransactions">0</div>
+                <div class="label">confirmadas</div>
+            </div>
+            <div class="stat-card">
+                <h3>Nodos Conectados</h3>
+                <div class="value" id="peers">0</div>
+                <div class="label">peers activos</div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Blockchain Visualization -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>📦 Blockchain</h2>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
+                            <input type="checkbox" id="autoRefreshToggle" checked>
+                            Auto-refresh
+                        </label>
+                        <button class="btn btn-primary" id="refreshBtn">
+                            🔄 Actualizar
+                        </button>
+                    </div>
+                </div>
+                <div class="blockchain-container" id="blockchainContainer">
+                    <!-- Bloques se cargarán aquí -->
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div style="display: flex; flex-direction: column; gap: 2rem;">
+                <!-- Wallet Info -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>💼 Mi Wallet</h2>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem;">Dirección</div>
+                        <div style="font-family: 'Courier New', monospace; font-size: 0.875rem; word-break: break-all; background: #f9fafb; padding: 0.75rem; border-radius: 8px;" id="walletAddress">
+                            Cargando...
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem;">Balance</div>
+                        <div style="font-size: 2rem; font-weight: 700; color: var(--primary);">
+                            <span id="walletBalance">0</span> OLX
+                        </div>
+                    </div>
+                    <button class="btn btn-success btn-block" id="mineBtn" style="margin-top: 1.5rem;">
+                        ⛏️ Minar Bloque
+                    </button>
+                </div>
+
+                <!-- Pending Transactions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>⏳ Pendientes</h2>
+                        <span class="badge badge-warning" id="pendingTxCount">0</span>
+                    </div>
+                    <div class="transactions-list" id="pendingTransactions">
+                        <!-- Transacciones pendientes se cargarán aquí -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction Form -->
+        <div class="card">
+            <div class="card-header">
+                <h2>💸 Nueva Transacción</h2>
+            </div>
+            <form id="transactionForm">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                    <div class="form-group">
+                        <label for="sender">Remitente</label>
+                        <input type="text" id="sender" placeholder="Dirección del remitente" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient">Destinatario</label>
+                        <input type="text" id="recipient" placeholder="Dirección del destinatario" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="amount">Cantidad (OLX)</label>
+                        <input type="number" id="amount" placeholder="0.00" step="0.01" min="0.01" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    ➤ Enviar Transacción
+                </button>
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; margin-top: 3rem; padding: 2rem; color: white; opacity: 0.8;">
+            <p>Oriluxchain v1.0.0 | Blockchain Personalizada</p>
+            <p style="font-size: 0.875rem; margin-top: 0.5rem;">Desarrollada con Python, Flask y JavaScript</p>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

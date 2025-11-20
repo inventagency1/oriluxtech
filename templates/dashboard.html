@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oriluxchain - Panel de Control Completo</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>⛓️ Oriluxchain</h2>
+            <p>v1.0.0</p>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-section="overview">
+                <span class="icon">📊</span>
+                <span>Resumen</span>
+            </a>
+            <a href="#" class="nav-item" data-section="blockchain">
+                <span class="icon">🔗</span>
+                <span>Blockchain</span>
+            </a>
+            <a href="#" class="nav-item" data-section="transactions">
+                <span class="icon">💸</span>
+                <span>Transacciones</span>
+            </a>
+            <a href="#" class="nav-item" data-section="wallets">
+                <span class="icon">💼</span>
+                <span>Wallets</span>
+            </a>
+            <a href="#" class="nav-item" data-section="mining">
+                <span class="icon">⛏️</span>
+                <span>Minería</span>
+            </a>
+            <a href="#" class="nav-item" data-section="network">
+                <span class="icon">🌐</span>
+                <span>Red P2P</span>
+            </a>
+            <a href="#" class="nav-item" data-section="explorer">
+                <span class="icon">🔍</span>
+                <span>Explorador</span>
+            </a>
+            <a href="#" class="nav-item" data-section="settings">
+                <span class="icon">⚙️</span>
+                <span>Configuración</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="node-status">
+                <div class="status-indicator online"></div>
+                <div>
+                    <div class="status-label">Estado del Nodo</div>
+                    <div class="status-value">En Línea</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="search-bar">
+                <input type="text" id="globalSearch" placeholder="Buscar bloques, transacciones, direcciones...">
+                <button class="search-btn">🔍</button>
+            </div>
+            
+            <div class="top-bar-actions">
+                <div class="notification-badge">
+                    <span class="icon">🔔</span>
+                    <span class="badge" id="notificationCount">0</span>
+                </div>
+                <div class="wallet-quick-info">
+                    <div class="wallet-balance">
+                        <span id="topBarBalance">0</span> OLX
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Container -->
+        <div id="alertContainer"></div>
+
+        <!-- Overview Section -->
+        <div class="section active" id="overview-section">
+            <div class="section-header">
+                <h1>📊 Resumen General</h1>
+                <div class="section-actions">
+                    <button class="btn btn-primary" onclick="refreshAll()">🔄 Actualizar Todo</button>
+                </div>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="metrics-grid">
+                <div class="metric-card primary">
+                    <div class="metric-icon">🔗</div>
+                    <div class="metric-content">
+                        <div class="metric-label">Bloques Totales</div>
+                        <div class="metric-value" id="totalBlocks">0</div>
+                        <div class="metric-change positive">+1 hoy</div>
+                    </div>
+                </div>
+                
+                <div class="metric-card success">
+                    <div class="metric-icon">💰</div>
+                    <div class="metric-content">
+                        <div class="metric-label">Balance Total</div>
+                        <div class="metric-value"><span id="totalBalance">0</span> OLX</div>
+                        <div class="metric-change positive">+50 último bloque</div>
+                    </div>
+                </div>
+                
+                <div class="metric-card warning">
+                    <div class="metric-icon">⏳</div>
+                    <div class="metric-content">
+                        <div class="metric-label">Pendientes</div>
+                        <div class="metric-value" id="pendingCount">0</div>
+                        <div class="metric-change">transacciones</div>
+                    </div>
+                </div>
+                
+                <div class="metric-card info">
+                    <div class="metric-icon">⚡</div>
+                    <div class="metric-content">
+                        <div class="metric-label">Dificultad</div>
+                        <div class="metric-value" id="difficultyMetric">0</div>
+                        <div class="metric-change">proof of work</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="charts-row">
+                <div class="chart-card">
+                    <h3>📈 Bloques Minados</h3>
+                    <canvas id="blocksChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>💸 Transacciones por Bloque</h3>
+                    <canvas id="transactionsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="activity-section">
+                <h3>🕐 Actividad Reciente</h3>
+                <div id="recentActivity" class="activity-list">
+                    <!-- Activity items will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Blockchain Section -->
+        <div class="section" id="blockchain-section">
+            <div class="section-header">
+                <h1>🔗 Blockchain Explorer</h1>
+                <div class="section-actions">
+                    <button class="btn btn-secondary" onclick="exportBlockchain()">📥 Exportar</button>
+                    <button class="btn btn-primary" onclick="loadBlockchain()">🔄 Actualizar</button>
+                </div>
+            </div>
+
+            <div class="blockchain-explorer">
+                <div id="blockchainVisualization" class="blockchain-viz">
+                    <!-- Blocks will be rendered here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions Section -->
+        <div class="section" id="transactions-section">
+            <div class="section-header">
+                <h1>💸 Gestión de Transacciones</h1>
+                <button class="btn btn-primary" onclick="showNewTransactionModal()">+ Nueva Transacción</button>
+            </div>
+
+            <div class="transactions-container">
+                <div class="transactions-tabs">
+                    <button class="tab-btn active" data-tab="pending">Pendientes</button>
+                    <button class="tab-btn" data-tab="confirmed">Confirmadas</button>
+                    <button class="tab-btn" data-tab="all">Todas</button>
+                </div>
+
+                <div class="transactions-list" id="transactionsList">
+                    <!-- Transactions will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Wallets Section -->
+        <div class="section" id="wallets-section">
+            <div class="section-header">
+                <h1>💼 Gestión de Wallets</h1>
+                <div class="section-actions">
+                    <button class="btn btn-secondary" onclick="importWallet()">📂 Importar</button>
+                    <button class="btn btn-primary" onclick="createNewWallet()">+ Nueva Wallet</button>
+                </div>
+            </div>
+
+            <div class="wallets-grid" id="walletsGrid">
+                <!-- Wallets will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Mining Section -->
+        <div class="section" id="mining-section">
+            <div class="section-header">
+                <h1>⛏️ Centro de Minería</h1>
+            </div>
+
+            <div class="mining-dashboard">
+                <div class="mining-control">
+                    <div class="mining-status">
+                        <h3>Estado de Minería</h3>
+                        <div class="status-display" id="miningStatus">
+                            <div class="status-icon">⏸️</div>
+                            <div class="status-text">Inactivo</div>
+                        </div>
+                    </div>
+
+                    <div class="mining-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">Bloques Minados</div>
+                            <div class="stat-value" id="minedBlocks">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Recompensas Totales</div>
+                            <div class="stat-value"><span id="totalRewards">0</span> OLX</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Último Tiempo</div>
+                            <div class="stat-value" id="lastMiningTime">-</div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-large btn-success" id="mineButton" onclick="startMining()">
+                        ⛏️ Iniciar Minería
+                    </button>
+                </div>
+
+                <div class="mining-config">
+                    <h3>⚙️ Configuración de Minería</h3>
+                    <div class="config-item">
+                        <label>Dificultad Actual</label>
+                        <div class="difficulty-display" id="currentDifficulty">3</div>
+                    </div>
+                    <div class="config-item">
+                        <label>Recompensa por Bloque</label>
+                        <div class="reward-display">50 OLX</div>
+                    </div>
+                    <div class="config-item">
+                        <label>Transacciones Pendientes</label>
+                        <div class="pending-display" id="miningPending">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Network Section -->
+        <div class="section" id="network-section">
+            <div class="section-header">
+                <h1>🌐 Red P2P</h1>
+                <button class="btn btn-primary" onclick="showAddNodeModal()">+ Añadir Nodo</button>
+            </div>
+
+            <div class="network-overview">
+                <div class="network-stats">
+                    <div class="network-stat">
+                        <div class="stat-icon">🖥️</div>
+                        <div>
+                            <div class="stat-label">Nodos Conectados</div>
+                            <div class="stat-value" id="connectedNodes">0</div>
+                        </div>
+                    </div>
+                    <div class="network-stat">
+                        <div class="stat-icon">📡</div>
+                        <div>
+                            <div class="stat-label">Estado de Red</div>
+                            <div class="stat-value">Sincronizado</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nodes-list" id="nodesList">
+                    <!-- Nodes will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Explorer Section -->
+        <div class="section" id="explorer-section">
+            <div class="section-header">
+                <h1>🔍 Explorador de Blockchain</h1>
+            </div>
+
+            <div class="explorer-search">
+                <input type="text" id="explorerSearch" placeholder="Buscar por hash de bloque, dirección o transacción...">
+                <button class="btn btn-primary" onclick="searchBlockchain()">Buscar</button>
+            </div>
+
+            <div id="explorerResults" class="explorer-results">
+                <div class="empty-state">
+                    <div class="empty-icon">🔍</div>
+                    <p>Ingresa un hash de bloque, dirección o ID de transacción para buscar</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div class="section" id="settings-section">
+            <div class="section-header">
+                <h1>⚙️ Configuración</h1>
+            </div>
+
+            <div class="settings-container">
+                <div class="settings-group">
+                    <h3>🎨 Apariencia</h3>
+                    <div class="setting-item">
+                        <label>Tema</label>
+                        <select id="themeSelect">
+                            <option value="light">Claro</option>
+                            <option value="dark">Oscuro</option>
+                            <option value="auto">Automático</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label>Auto-refresh</label>
+                        <input type="checkbox" id="autoRefreshSetting" checked>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3>🔔 Notificaciones</h3>
+                    <div class="setting-item">
+                        <label>Nuevos bloques</label>
+                        <input type="checkbox" id="notifyBlocks" checked>
+                    </div>
+                    <div class="setting-item">
+                        <label>Nuevas transacciones</label>
+                        <input type="checkbox" id="notifyTransactions" checked>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3>📊 Información del Nodo</h3>
+                    <div class="info-item">
+                        <label>Dirección del Nodo</label>
+                        <div class="info-value" id="nodeAddress">http://localhost:5000</div>
+                    </div>
+                    <div class="info-item">
+                        <label>Wallet del Nodo</label>
+                        <div class="info-value monospace" id="nodeWalletAddress">Cargando...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modalOverlay" class="modal-overlay">
+        <div class="modal" id="transactionModal">
+            <div class="modal-header">
+                <h2>💸 Nueva Transacción</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="newTransactionForm">
+                    <div class="form-group">
+                        <label>Remitente</label>
+                        <input type="text" id="txSender" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Destinatario</label>
+                        <input type="text" id="txRecipient" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Cantidad (OLX)</label>
+                        <input type="number" id="txAmount" step="0.01" min="0.01" required>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Enviar Transacción</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
