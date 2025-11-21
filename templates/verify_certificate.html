@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación de Certificado - {{ certificate_id }} | Oriluxchain</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/futuristic.css') }}">
+    <style>
+        .verify-container {
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(13, 27, 42, 0.95), rgba(27, 38, 59, 0.95));
+            border-radius: 20px;
+            border: 2px solid #CFA349;
+            box-shadow: 0 10px 40px rgba(207, 163, 73, 0.3);
+        }
+        
+        .verify-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .verify-badge {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #CFA349, #F4D03F);
+            color: #0D1B2A;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(207, 163, 73, 0.5);
+        }
+        
+        .verify-badge.verified {
+            background: linear-gradient(135deg, #27AE60, #2ECC71);
+            color: white;
+        }
+        
+        .verify-badge.pending {
+            background: linear-gradient(135deg, #F39C12, #F1C40F);
+        }
+        
+        .cert-info {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid #CFA349;
+        }
+        
+        .cert-info h3 {
+            color: #CFA349;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            color: #8892B0;
+            font-weight: 500;
+        }
+        
+        .info-value {
+            color: #E6F1FF;
+            font-weight: 600;
+            text-align: right;
+        }
+        
+        .blockchain-info {
+            background: rgba(207, 163, 73, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #CFA349;
+        }
+        
+        .hash-display {
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            word-break: break-all;
+            font-size: 0.9em;
+            color: #CFA349;
+        }
+        
+        .btn-verify {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #CFA349, #F4D03F);
+            color: #0D1B2A;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+        
+        .btn-verify:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(207, 163, 73, 0.5);
+        }
+        
+        .jewelry-image {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 15px;
+            margin: 20px auto;
+            display: block;
+            border: 3px solid #CFA349;
+        }
+    </style>
+</head>
+<body>
+    <div class="verify-container">
+        <div class="verify-header">
+            <h1>🔐 Verificación de Certificado</h1>
+            {% if verification.verified %}
+                <div class="verify-badge verified">
+                    ✅ CERTIFICADO VERIFICADO EN BLOCKCHAIN
+                </div>
+            {% else %}
+                <div class="verify-badge pending">
+                    ⏳ PENDIENTE DE MINERÍA
+                </div>
+            {% endif %}
+            <p style="color: #8892B0; margin-top: 10px;">ID: {{ certificate_id }}</p>
+        </div>
+
+        {% if verification.certificate %}
+        <div class="cert-info">
+            <h3>💎 Información de la Joyería</h3>
+            <div class="info-row">
+                <span class="info-label">Tipo:</span>
+                <span class="info-value">{{ verification.certificate.jewelry_type }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Material:</span>
+                <span class="info-value">{{ verification.certificate.material }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Peso:</span>
+                <span class="info-value">{{ verification.certificate.weight }}</span>
+            </div>
+            {% if verification.certificate.stones %}
+            <div class="info-row">
+                <span class="info-label">Piedras:</span>
+                <span class="info-value">{{ verification.certificate.stones|length }} piedra(s)</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="cert-info">
+            <h3>🏪 Joyería Emisora</h3>
+            <div class="info-row">
+                <span class="info-label">Nombre:</span>
+                <span class="info-value">{{ verification.certificate.jeweler.name }}</span>
+            </div>
+            {% if verification.certificate.jeweler.location %}
+            <div class="info-row">
+                <span class="info-label">Ubicación:</span>
+                <span class="info-value">{{ verification.certificate.jeweler.location }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="cert-info">
+            <h3>👤 Propietario</h3>
+            <div class="info-row">
+                <span class="info-label">Wallet:</span>
+                <span class="info-value hash-display">{{ verification.certificate.owner.wallet_address or 'No asignado' }}</span>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if verification.verified %}
+        <div class="blockchain-info">
+            <h3 style="color: #CFA349; margin-bottom: 20px;">⛓️ Información de Blockchain</h3>
+            <div class="info-row">
+                <span class="info-label">Estado:</span>
+                <span class="info-value" style="color: #27AE60;">✅ Verificado e Inmutable</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Bloque:</span>
+                <span class="info-value">#{{ verification.block_number }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Hash del Bloque:</span>
+                <span class="info-value">
+                    <div class="hash-display">{{ verification.block_hash }}</div>
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Timestamp:</span>
+                <span class="info-value">{{ verification.timestamp }}</span>
+            </div>
+        </div>
+        {% else %}
+        <div class="blockchain-info">
+            <h3 style="color: #F39C12; margin-bottom: 20px;">⏳ Estado: Pendiente de Minería</h3>
+            <p style="color: #8892B0;">
+                Este certificado ha sido registrado en la blockchain pero aún no ha sido incluido en un bloque minado.
+                Una vez que sea minado, estará permanentemente verificado e inmutable.
+            </p>
+        </div>
+        {% endif %}
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="/" class="btn-verify">← Volver al Dashboard</a>
+            <a href="https://veralix.io" class="btn-verify" style="margin-left: 10px;">Ver en Veralix →</a>
+        </div>
+    </div>
+
+    <canvas id="particles-canvas"></canvas>
+    <script src="{{ url_for('static', filename='js/particles.js') }}"></script>
+</body>
+</html>
