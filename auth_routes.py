@@ -102,62 +102,29 @@ def init_auth(app):
         logout_user()
         return redirect(url_for('login'))
     
-    # Proteger rutas existentes
-    def protect_routes(app):
-        """Protege las rutas del dashboard y API"""
+    # Proteger todas las rutas excepto login y register
+    @app.before_request
+    def require_login():
         # Lista de rutas públicas (no requieren login)
-        public_routes = [
-            'login',
-            'register',
-            'static'
-        ]
+        public_endpoints = ['login', 'register', 'static']
         
-        # Lista de rutas de API (requieren autenticación pero no admin)
-        api_routes = [
-            '/api/',
-            '/chain',
-            '/balance/',
-            '/wallet',
-            '/tokens',
-            '/contracts',
-            '/nodes'
-        ]
-        
-        # Lista de rutas admin (requieren admin)
-        admin_routes = [
-            '/mine',
-            '/transactions/new',
-            '/wallet/new',
-            '/nodes/register',
-            '/contracts/deploy',
-            '/staking/'
-        ]
-        
-        @app.before_request
-        def check_auth():
-            # Permitir rutas públicas
-            if request.endpoint in public_routes:
-                return None
-            
-            # Permitir archivos estáticos
-            if request.path.startswith('/static/'):
-                return None
-            
-            # Requerir login para todo lo demás
-            if not current_user.is_authenticated:
-                return redirect(url_for('login', next=request.url))
-            
-            # Verificar permisos de admin para rutas admin
-            for admin_route in admin_routes:
-                if request.path.startswith(admin_route):
-                    if not current_user.is_admin:
-                        flash('Acceso denegado. Se requieren permisos de administrador.', 'error')
-                        return redirect(url_for('index'))
-            
+        # Permitir rutas públicas
+        if request.endpoint in public_endpoints:
             return None
-    
-    # Aplicar protección de rutas
-    protect_routes(app)
+        
+        # Permitir archivos estáticos
+        if request.path.startswith('/static/'):
+            return None
+        
+        # Requerir login para todo lo demás
+        if not current_user.is_authenticated:
+            return redirect(url_for('login', next=request.url))
+        
+        # Verificar permisos de admin para rutas sensibles
+        admin_routes = ['/mine', '/transactions/new', '/wallet/new', '/nodes/register', '/contracts/deploy']
+        for admin_route in admin_routes:
+            if request.path.startswith(admin_route) and not current_user.is_admin:
+                return redirect(url_for('index'))
     
     # Ruta de administración de usuarios (solo admin)
     @app.route('/admin/users')
