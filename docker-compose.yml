@@ -32,29 +32,12 @@ services:
     labels:
       - "com.oriluxchain.service=blockchain"
       - "com.oriluxchain.version=1.0.0"
-
-  # Nginx Reverse Proxy
-  nginx:
-    image: nginx:alpine
-    container_name: orilux_nginx
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
-      - nginx_cache:/var/cache/nginx
-    depends_on:
-      - oriluxchain
-    labels:
-      - "com.oriluxchain.service=proxy"
-
-  # PostgreSQL y Redis comentados por ahora
-  # Descomenta si los necesitas más adelante
+      - "traefik.enable=true"
+      - "traefik.http.routers.oriluxchain.rule=Host(`chain.oriluxtech.com`)"
+      - "traefik.http.routers.oriluxchain.entrypoints=websecure"
+      - "traefik.http.routers.oriluxchain.tls.certresolver=letsencrypt"
+      - "traefik.http.services.oriluxchain.loadbalancer.server.port=5000"
 
 volumes:
   blockchain_data:
-    driver: local
-  nginx_cache:
     driver: local
