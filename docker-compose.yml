@@ -23,8 +23,6 @@ services:
     volumes:
       - blockchain_data:/app/data
       - ./logs:/app/logs
-    networks:
-      - orilux_network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/info"]
       interval: 30s
@@ -49,8 +47,6 @@ services:
       - nginx_cache:/var/cache/nginx
     depends_on:
       - oriluxchain
-    networks:
-      - orilux_network
     labels:
       - "com.oriluxchain.service=proxy"
 
@@ -62,7 +58,3 @@ volumes:
     driver: local
   nginx_cache:
     driver: local
-
-networks:
-  orilux_network:
-    driver: bridge
