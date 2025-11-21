@@ -29,4 +29,27 @@ print()
 
 # Ejecutar api.py directamente
 print("🚀 Iniciando servidor Flask...")
-import api
+
+# Importar y ejecutar
+from api import BlockchainAPI
+from blockchain import Blockchain
+from wallet import Wallet
+
+# Crear instancias básicas
+blockchain = Blockchain(difficulty=int(os.environ.get('DIFFICULTY', 3)))
+wallet = Wallet()
+
+# Crear API (sin P2P por ahora)
+api = BlockchainAPI(
+    blockchain=blockchain,
+    wallet=wallet,
+    node=None,  # Sin P2P por ahora
+    port=int(os.environ.get('PORT', 5000))
+)
+
+print("✅ Oriluxchain iniciado correctamente")
+print(f"🌐 Servidor corriendo en http://0.0.0.0:{os.environ.get('PORT')}")
+print()
+
+# Iniciar Flask
+api.run(debug=False)
