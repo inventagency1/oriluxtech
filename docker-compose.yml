@@ -3,7 +3,10 @@ version: '3.8'
 services:
   # Oriluxchain Blockchain Node
   oriluxchain:
-    build: .
+    build:
+      context: .
+      no_cache: true
+    pull_policy: always
     container_name: oriluxchain_node
     restart: unless-stopped
     ports:
