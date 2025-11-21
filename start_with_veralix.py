@@ -29,15 +29,22 @@ print()
 
 # Ejecutar api.py directamente
 print("🚀 Iniciando servidor Flask...")
+print("🔐 Configurando sistema de autenticación...")
 
 # Importar y ejecutar
 from api import BlockchainAPI
+from auth_routes import init_auth
 
 # Crear API (crea blockchain, wallet y node internamente)
 api = BlockchainAPI(port=int(os.environ.get('PORT', 5000)))
 
+# Inicializar autenticación
+user_manager = init_auth(api.app)
+
 print("✅ Oriluxchain iniciado correctamente")
+print("✅ Sistema de autenticación activo")
 print(f"🌐 Servidor corriendo en http://0.0.0.0:{os.environ.get('PORT')}")
+print(f"👤 Super Admin: superadm")
 print()
 
 # Iniciar Flask
