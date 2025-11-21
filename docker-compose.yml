@@ -1,31 +1,20 @@
 version: '3.8'
 
 services:
-  # Oriluxchain Blockchain Node
   oriluxchain:
-    build:
-      context: .
-      args:
-        - CACHEBUST=${CACHEBUST:-1}
+    build: .
     image: oriluxchain:latest
-    container_name: oriluxchain_node
     restart: unless-stopped
     ports:
       - "5000:5000"
-      - "5001:5001"
     environment:
       - PORT=5000
-      - BRIDGE_PORT=5001
-      - DIFFICULTY=${DIFFICULTY:-3}
-      - VERALIX_URL=${VERALIX_URL:-https://veralix.io}
-      - VERALIX_API_KEY=${VERALIX_API_KEY:-}
+      - DIFFICULTY=3
+      - VERALIX_URL=https://veralix.io
       - PYTHONUNBUFFERED=1
     volumes:
       - blockchain_data:/app/data
-      - ./logs:/app/logs
     labels:
-      - "com.oriluxchain.service=blockchain"
-      - "com.oriluxchain.version=1.0.0"
       - "traefik.enable=true"
       - "traefik.http.routers.oriluxchain.rule=Host(`chain.oriluxtech.com`)"
       - "traefik.http.routers.oriluxchain.entrypoints=websecure"
