@@ -23,12 +23,6 @@ services:
     volumes:
       - blockchain_data:/app/data
       - ./logs:/app/logs
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/api/info"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
     labels:
       - "com.oriluxchain.service=blockchain"
       - "com.oriluxchain.version=1.0.0"
