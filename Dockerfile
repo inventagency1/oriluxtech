@@ -6,6 +6,9 @@ LABEL maintainer="Orilux Tech <support@oriluxchain.io>"
 LABEL description="Oriluxchain - Blockchain with Dual Tokens and Smart Contracts"
 LABEL version="1.0.0"
 
+# Cache bust argument
+ARG CACHEBUST=1
+
 # Set working directory
 WORKDIR /app
 

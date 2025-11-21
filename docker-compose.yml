@@ -5,8 +5,9 @@ services:
   oriluxchain:
     build:
       context: .
-      no_cache: true
-    pull_policy: always
+      args:
+        - CACHEBUST=${CACHEBUST:-1}
+    image: oriluxchain:latest
     container_name: oriluxchain_node
     restart: unless-stopped
     ports:
