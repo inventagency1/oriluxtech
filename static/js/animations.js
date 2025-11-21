@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.forEach(el => {
         el.style.opacity = '0';
         el.style.transform = 'translateY(30px)';
-        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        el.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
         observer.observe(el);
     });
 });
@@ -74,7 +74,7 @@ class CardTilt {
 
 // Number counter animation
 class CounterAnimation {
-    constructor(element, target, duration = 2000) {
+    constructor(element, target, duration = 1000) {
         this.element = element;
         this.target = target;
         this.duration = duration;
@@ -153,14 +153,14 @@ function createRipple(event) {
     
     button.appendChild(ripple);
     
-    setTimeout(() => ripple.remove(), 600);
+    setTimeout(() => ripple.remove(), 400);
 }
 
 // Floating animation for icons
 function floatingAnimation() {
     const icons = document.querySelectorAll('.metric-icon');
     icons.forEach((icon, index) => {
-        icon.style.animation = `float 3s ease-in-out ${index * 0.2}s infinite`;
+        icon.style.animation = `float 2s ease-in-out ${index * 0.1}s infinite`;
     });
 }
 
@@ -177,7 +177,7 @@ style.textContent = `
         border-radius: 50%;
         background: rgba(255, 215, 0, 0.4);
         transform: scale(0);
-        animation: ripple-animation 0.6s ease-out;
+        animation: ripple-animation 0.4s ease-out;
         pointer-events: none;
     }
     
@@ -235,7 +235,7 @@ function smoothTransition(callback) {
         callback();
         document.body.style.opacity = '1';
         document.body.style.transform = 'scale(1)';
-    }, 300);
+    }, 150);
 }
 
 // Export for use in other modules

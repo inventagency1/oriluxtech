@@ -13,9 +13,9 @@ class ParticleSystem {
         
         this.ctx = this.canvas.getContext('2d');
         this.particles = [];
-        this.particleCount = 100;
-        this.connectionDistance = 150;
-        this.mouse = { x: null, y: null, radius: 150 };
+        this.particleCount = 50; // Reducido para mejor performance
+        this.connectionDistance = 120; // Reducido para menos cálculos
+        this.mouse = { x: null, y: null, radius: 120 };
         
         this.colors = {
             gold: 'rgba(255, 215, 0, ',
