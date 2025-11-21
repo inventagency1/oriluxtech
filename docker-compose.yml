@@ -50,45 +50,11 @@ services:
     labels:
       - "com.oriluxchain.service=proxy"
 
-  # PostgreSQL (Optional - for analytics/backup)
-  postgres:
-    image: postgres:15-alpine
-    container_name: orilux_postgres
-    restart: unless-stopped
-    environment:
-      - POSTGRES_DB=oriluxchain
-      - POSTGRES_USER=${POSTGRES_USER:-orilux}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - orilux_network
-    profiles:
-      - with-database
-    labels:
-      - "com.oriluxchain.service=database"
-
-  # Redis (Optional - for caching)
-  redis:
-    image: redis:7-alpine
-    container_name: orilux_redis
-    restart: unless-stopped
-    command: redis-server --appendonly yes
-    volumes:
-      - redis_data:/data
-    networks:
-      - orilux_network
-    profiles:
-      - with-cache
-    labels:
-      - "com.oriluxchain.service=cache"
+  # PostgreSQL y Redis comentados por ahora
+  # Descomenta si los necesitas más adelante
 
 volumes:
   blockchain_data:
-    driver: local
-  postgres_data:
-    driver: local
-  redis_data:
     driver: local
   nginx_cache:
     driver: local
