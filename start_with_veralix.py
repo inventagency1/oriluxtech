@@ -29,7 +29,7 @@ print(f"   - Veralix URL: {os.environ.get('VERALIX_URL')}")
 print()
 
 # Importar módulos necesarios
-from api import OriluxchainAPI
+from api import BlockchainAPI
 from blockchain import Blockchain
 from wallet import Wallet
 from p2p import P2PNode
@@ -45,7 +45,7 @@ print("🌐 Creando nodo P2P...")
 node = P2PNode(port=int(os.environ.get('PORT', 5000)) + 1000)
 
 print("🚀 Iniciando API...")
-api = OriluxchainAPI(
+api = BlockchainAPI(
     blockchain=blockchain,
     wallet=wallet,
     node=node,
