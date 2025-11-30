@@ -3,128 +3,325 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oriluxchain Explorer</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <title>Oriluxchain Explorer - Blockchain de Certificación</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --gold: #D4AF37;
-            --gold-light: #F4E4BC;
-            --dark: #1a1a2e;
-            --darker: #0f0f1a;
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #111111;
+            --bg-card: #161616;
+            --border: #2a2a2a;
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --accent-gold: #c9a227;
+            --accent-gold-light: #e8d48b;
+            --success: #22c55e;
+            --warning: #eab308;
         }
         body {
-            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             min-height: 100vh;
+            line-height: 1.6;
         }
-        .gold-gradient {
-            background: linear-gradient(135deg, var(--gold) 0%, #B8860B 100%);
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
+        
+        /* Header */
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(212, 175, 55, 0.2);
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
         }
-        .hash-text {
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-gold) 0%, #8b7355 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .logo-text h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .logo-text span {
+            font-size: 12px;
+            color: var(--accent-gold);
+            font-weight: 500;
+        }
+        
+        /* Search */
+        .search-box {
+            display: flex;
+            gap: 8px;
+            flex: 1;
+            max-width: 500px;
+        }
+        .search-input {
+            flex: 1;
+            padding: 10px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-input:focus { border-color: var(--accent-gold); }
+        .search-input::placeholder { color: var(--text-secondary); }
+        .search-btn {
+            padding: 10px 20px;
+            background: var(--accent-gold);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .search-btn:hover { opacity: 0.9; }
+        
+        /* Stats */
+        .stats-section { padding: 40px 0; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        @media (max-width: 768px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .stat-value.gold { color: var(--accent-gold); }
+        .stat-value.green { color: var(--success); }
+        .stat-value.white { color: var(--text-primary); }
+        .stat-label { color: var(--text-secondary); font-size: 14px; }
+        
+        /* Blocks Table */
+        .section { padding: 40px 0; }
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .section-title span { color: var(--accent-gold); }
+        
+        .table-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            text-align: left;
+            padding: 16px 20px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        td {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            font-size: 14px;
+        }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+        
+        .block-number {
+            font-weight: 700;
+            color: var(--accent-gold);
+        }
+        .hash {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+        .hash a { color: var(--accent-gold-light); text-decoration: none; }
+        .hash a:hover { text-decoration: underline; }
+        .tx-count {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .timestamp { color: var(--text-secondary); font-size: 13px; }
+        
+        /* Footer */
+        .footer {
+            border-top: 1px solid var(--border);
+            padding: 32px 0;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        .footer a { color: var(--accent-gold); text-decoration: none; }
+        
+        /* Badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(201, 162, 39, 0.1);
+            border: 1px solid rgba(201, 162, 39, 0.3);
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--accent-gold);
+        }
+        .badge-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
     </style>
 </head>
-<body class="text-white">
+<body>
     <!-- Header -->
-    <header class="gold-gradient py-4 shadow-lg">
-        <div class="container mx-auto px-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                        <span class="text-2xl">⛓️</span>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/explorer" class="logo" style="text-decoration: none;">
+                    <div class="logo-icon">⛓️</div>
+                    <div class="logo-text">
+                        <h1>Oriluxchain</h1>
+                        <span>EXPLORER</span>
                     </div>
-                    <div>
-                        <h1 class="text-2xl font-bold text-white">Oriluxchain Explorer</h1>
-                        <p class="text-sm text-white/80">Blockchain de Certificación de Joyería</p>
-                    </div>
-                </div>
-                <form action="/explorer/search" method="GET" class="flex gap-2">
-                    <input type="text" name="q" placeholder="Buscar hash, bloque, certificado..." 
-                           class="px-4 py-2 rounded-lg bg-white/20 text-white placeholder-white/60 border border-white/30 focus:outline-none focus:border-white w-80">
-                    <button type="submit" class="px-4 py-2 bg-white/20 rounded-lg hover:bg-white/30 transition">
-                        🔍
-                    </button>
+                </a>
+                
+                <form action="/explorer/search" method="GET" class="search-box">
+                    <input type="text" name="q" placeholder="Buscar por hash, bloque, certificado o dirección..." class="search-input">
+                    <button type="submit" class="search-btn">Buscar</button>
                 </form>
+                
+                <div class="badge">
+                    <div class="badge-dot"></div>
+                    Mainnet
+                </div>
             </div>
         </div>
     </header>
 
     <!-- Stats -->
-    <section class="container mx-auto px-4 py-8">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div class="card rounded-xl p-6 text-center">
-                <p class="text-3xl font-bold text-yellow-400">{{ stats.total_blocks }}</p>
-                <p class="text-gray-400">Bloques Totales</p>
-            </div>
-            <div class="card rounded-xl p-6 text-center">
-                <p class="text-3xl font-bold text-green-400">{{ stats.total_transactions }}</p>
-                <p class="text-gray-400">Transacciones</p>
-            </div>
-            <div class="card rounded-xl p-6 text-center">
-                <p class="text-3xl font-bold text-blue-400">{{ stats.pending_transactions }}</p>
-                <p class="text-gray-400">Pendientes</p>
-            </div>
-            <div class="card rounded-xl p-6 text-center">
-                <p class="text-3xl font-bold text-purple-400">{{ stats.difficulty }}</p>
-                <p class="text-gray-400">Dificultad</p>
+    <section class="stats-section">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value gold">{{ stats.total_blocks }}</div>
+                    <div class="stat-label">Bloques Totales</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value green">{{ stats.total_transactions }}</div>
+                    <div class="stat-label">Transacciones</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value white">{{ stats.pending_transactions }}</div>
+                    <div class="stat-label">Pendientes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value gold">{{ stats.difficulty }}</div>
+                    <div class="stat-label">Dificultad</div>
+                </div>
             </div>
         </div>
     </section>
 
     <!-- Recent Blocks -->
-    <section class="container mx-auto px-4 pb-12">
-        <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-            <span class="text-yellow-400">📦</span> Últimos Bloques
-        </h2>
-        <div class="card rounded-xl overflow-hidden">
-            <table class="w-full">
-                <thead class="bg-white/10">
-                    <tr>
-                        <th class="px-6 py-4 text-left text-yellow-400">Bloque</th>
-                        <th class="px-6 py-4 text-left text-yellow-400">Hash</th>
-                        <th class="px-6 py-4 text-left text-yellow-400">Transacciones</th>
-                        <th class="px-6 py-4 text-left text-yellow-400">Tiempo</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for block in blocks %}
-                    <tr class="border-t border-white/10 hover:bg-white/5 transition">
-                        <td class="px-6 py-4">
-                            <a href="/explorer/block/{{ block.index }}" class="text-yellow-400 hover:underline font-bold">
-                                #{{ block.index }}
-                            </a>
-                        </td>
-                        <td class="px-6 py-4 hash-text">
-                            <a href="/explorer/block/{{ block.index }}" class="text-blue-400 hover:underline">
-                                {{ block.hash }}
-                            </a>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-sm">
-                                {{ block.transactions_count }} txs
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-gray-400">
-                            {{ block.timestamp | int }}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span>◆</span> Últimos Bloques
+                </h2>
+                <a href="/explorer/blocks" style="color: var(--accent-gold); text-decoration: none; font-size: 14px;">
+                    Ver todos →
+                </a>
+            </div>
+            
+            <div class="table-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Bloque</th>
+                            <th>Hash</th>
+                            <th>Transacciones</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for block in blocks %}
+                        <tr>
+                            <td>
+                                <a href="/explorer/block/{{ block.index }}" class="block-number">#{{ block.index }}</a>
+                            </td>
+                            <td class="hash">
+                                <a href="/explorer/block/{{ block.index }}">{{ block.hash }}</a>
+                            </td>
+                            <td>
+                                <span class="tx-count">{{ block.transactions_count }} txs</span>
+                            </td>
+                            <td class="timestamp">{{ block.timestamp | int }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer class="border-t border-white/10 py-6">
-        <div class="container mx-auto px-4 text-center text-gray-500">
-            <p>Oriluxchain Explorer - {{ stats.network }}</p>
-            <p class="text-sm mt-2">Powered by Veralix.io</p>
+    <footer class="footer">
+        <div class="container">
+            <p><strong>Oriluxchain Explorer</strong> — {{ stats.network }}</p>
+            <p style="margin-top: 8px;">Blockchain de Certificación de Joyería · Powered by <a href="https://veralix.io" target="_blank">Veralix.io</a></p>
         </div>
     </footer>
 </body>

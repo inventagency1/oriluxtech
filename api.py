@@ -1410,6 +1410,57 @@ class BlockchainAPI:
                 'certificates': certificates,
                 'total': len(certificates)
             }), 200
+        
+        @self.app.route('/api/explorer/sync-veralix', methods=['POST'])
+        def sync_veralix_certificate():
+            """Sincroniza un certificado de Veralix con Oriluxchain."""
+            try:
+                data = request.get_json()
+                
+                # Crear item de joyería desde datos de Veralix
+                item = JewelryItem(
+                    item_id=data.get('jewelry_item_id', data.get('item_id')),
+                    jewelry_type=data.get('type', 'jewelry'),
+                    material=data.get('materials', 'N/A'),
+                    purity=data.get('purity', 'N/A'),
+                    weight=float(data.get('weight', 0)),
+                    stones=[],
+                    jeweler=data.get('craftsman', 'Veralix'),
+                    manufacturer=data.get('origin', 'Colombia'),
+                    origin_country=data.get('origin_country', 'Colombia'),
+                    creation_date=data.get('created_at', ''),
+                    description=data.get('description', data.get('name', '')),
+                    images=data.get('image_urls', []),
+                    estimated_value=float(data.get('sale_price', 0))
+                )
+                
+                # Crear certificado en Oriluxchain
+                certificate = self.jewelry_system.create_certificate(
+                    item=item,
+                    owner=data.get('user_id', data.get('owner', '')),
+                    issuer=data.get('issuer', 'Veralix.io')
+                )
+                
+                # Obtener número de bloque
+                latest_block = self.blockchain.get_latest_block()
+                block_number = latest_block.index if latest_block else 0
+                
+                return jsonify({
+                    'success': True,
+                    'certificate_id': certificate.certificate_id,
+                    'blockchain_tx': certificate.blockchain_tx,
+                    'transaction_hash': certificate.blockchain_tx,
+                    'block_number': str(block_number),
+                    'verification_url': certificate.verification_url,
+                    'explorer_url': f'/explorer/certificate/{certificate.certificate_id}',
+                    'message': 'Certificado sincronizado con Oriluxchain'
+                }), 201
+                
+            except Exception as e:
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 400
     
     def run(self, debug=True):
         """
