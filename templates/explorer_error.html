@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - Oriluxchain Explorer</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        :root { --gold: #D4AF37; --dark: #1a1a2e; --darker: #0f0f1a; }
+        body { background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%); min-height: 100vh; }
+        .gold-gradient { background: linear-gradient(135deg, var(--gold) 0%, #B8860B 100%); }
+        .card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, 0.2); }
+    </style>
+</head>
+<body class="text-white">
+    <header class="gold-gradient py-4 shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center gap-4">
+                <a href="/explorer" class="text-white hover:text-white/80">← Volver al Explorer</a>
+                <h1 class="text-2xl font-bold">Oriluxchain Explorer</h1>
+            </div>
+        </div>
+    </header>
+
+    <section class="container mx-auto px-4 py-16">
+        <div class="card rounded-xl p-12 text-center max-w-lg mx-auto">
+            <span class="text-6xl mb-6 block">🔍</span>
+            <h2 class="text-2xl font-bold text-red-400 mb-4">No Encontrado</h2>
+            <p class="text-gray-400 mb-8">{{ error }}</p>
+            <div class="space-y-4">
+                <a href="/explorer" class="block px-6 py-3 bg-yellow-500/20 text-yellow-400 rounded-lg hover:bg-yellow-500/30 transition">
+                    Ir al Explorer
+                </a>
+                <form action="/explorer/search" method="GET" class="flex gap-2">
+                    <input type="text" name="q" placeholder="Buscar..." 
+                           class="flex-1 px-4 py-3 rounded-lg bg-white/10 text-white placeholder-white/60 border border-white/20 focus:outline-none focus:border-yellow-400">
+                    <button type="submit" class="px-6 py-3 bg-yellow-500/20 text-yellow-400 rounded-lg hover:bg-yellow-500/30">
+                        Buscar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

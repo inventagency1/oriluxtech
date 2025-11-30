@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transacción - Oriluxchain Explorer</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        :root { --gold: #D4AF37; --dark: #1a1a2e; --darker: #0f0f1a; }
+        body { background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%); min-height: 100vh; }
+        .gold-gradient { background: linear-gradient(135deg, var(--gold) 0%, #B8860B 100%); }
+        .card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, 0.2); }
+        .hash-text { font-family: 'Courier New', monospace; font-size: 0.85rem; word-break: break-all; }
+    </style>
+</head>
+<body class="text-white">
+    <header class="gold-gradient py-4 shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center gap-4">
+                <a href="/explorer" class="text-white hover:text-white/80">← Volver</a>
+                <h1 class="text-2xl font-bold">Detalles de Transacción</h1>
+            </div>
+        </div>
+    </header>
+
+    <section class="container mx-auto px-4 py-8">
+        <div class="card rounded-xl p-6">
+            <div class="flex items-center gap-3 mb-6">
+                <span class="text-4xl">✅</span>
+                <div>
+                    <p class="text-green-400 font-bold text-lg">Transacción Confirmada</p>
+                    <p class="text-gray-400 text-sm">Incluida en bloque #{{ block_index }}</p>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div>
+                    <p class="text-gray-400 text-sm">Hash de Transacción</p>
+                    <p class="hash-text text-purple-400 bg-black/30 p-3 rounded mt-1">{{ tx_hash }}</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <p class="text-gray-400 text-sm">De (Sender)</p>
+                        <p class="hash-text text-blue-400 bg-black/30 p-3 rounded mt-1">{{ transaction.sender }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Para (Recipient)</p>
+                        <p class="hash-text text-green-400 bg-black/30 p-3 rounded mt-1">{{ transaction.recipient }}</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <p class="text-gray-400 text-sm">Cantidad</p>
+                        <p class="text-2xl font-bold text-yellow-400">{{ transaction.amount }} {{ transaction.token }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Bloque</p>
+                        <a href="/explorer/block/{{ block_index }}" class="text-2xl font-bold text-yellow-400 hover:underline">
+                            #{{ block_index }}
+                        </a>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Timestamp</p>
+                        <p class="text-lg">{{ transaction.timestamp }}</p>
+                    </div>
+                </div>
+
+                {% if transaction.data %}
+                <div>
+                    <p class="text-gray-400 text-sm mb-2">Datos Adicionales</p>
+                    <div class="bg-black/30 p-4 rounded">
+                        {% if transaction.data.type == 'jewelry_certification' %}
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-yellow-400 font-bold">📜 Certificación de Joyería</p>
+                                <p class="text-gray-400">ID: {{ transaction.data.certificate_id }}</p>
+                            </div>
+                            <a href="/explorer/certificate/{{ transaction.data.certificate_id }}" 
+                               class="px-4 py-2 bg-yellow-500/20 text-yellow-400 rounded-lg hover:bg-yellow-500/30">
+                                Ver Certificado →
+                            </a>
+                        </div>
+                        {% else %}
+                        <pre class="text-sm text-gray-300 overflow-x-auto">{{ transaction.data | tojson(indent=2) }}</pre>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+</body>
+</html>

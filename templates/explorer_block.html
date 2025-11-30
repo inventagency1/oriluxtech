@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bloque #{{ block.index }} - Oriluxchain Explorer</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        :root { --gold: #D4AF37; --dark: #1a1a2e; --darker: #0f0f1a; }
+        body { background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%); min-height: 100vh; }
+        .gold-gradient { background: linear-gradient(135deg, var(--gold) 0%, #B8860B 100%); }
+        .card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, 0.2); }
+        .hash-text { font-family: 'Courier New', monospace; font-size: 0.85rem; word-break: break-all; }
+    </style>
+</head>
+<body class="text-white">
+    <header class="gold-gradient py-4 shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center gap-4">
+                <a href="/explorer" class="text-white hover:text-white/80">← Volver</a>
+                <h1 class="text-2xl font-bold">Bloque #{{ block.index }}</h1>
+            </div>
+        </div>
+    </header>
+
+    <section class="container mx-auto px-4 py-8">
+        <div class="card rounded-xl p-6 mb-6">
+            <h2 class="text-xl font-bold text-yellow-400 mb-4">📦 Información del Bloque</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-gray-400 text-sm">Índice</p>
+                    <p class="text-xl font-bold">#{{ block.index }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400 text-sm">Nonce</p>
+                    <p class="text-xl">{{ block.nonce }}</p>
+                </div>
+                <div class="md:col-span-2">
+                    <p class="text-gray-400 text-sm">Hash</p>
+                    <p class="hash-text text-green-400 bg-black/30 p-2 rounded">{{ block.hash }}</p>
+                </div>
+                <div class="md:col-span-2">
+                    <p class="text-gray-400 text-sm">Hash Anterior</p>
+                    <p class="hash-text text-blue-400 bg-black/30 p-2 rounded">{{ block.previous_hash }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400 text-sm">Timestamp</p>
+                    <p>{{ block.timestamp }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400 text-sm">Transacciones</p>
+                    <p class="text-yellow-400 font-bold">{{ block.transactions | length }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card rounded-xl p-6">
+            <h2 class="text-xl font-bold text-yellow-400 mb-4">📝 Transacciones</h2>
+            {% if block.transactions %}
+            <div class="space-y-4">
+                {% for tx in block.transactions %}
+                <div class="bg-black/30 rounded-lg p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-sm text-gray-400">De: <span class="text-blue-400">{{ tx.sender[:20] }}...</span></span>
+                        <span class="text-sm text-gray-400">Para: <span class="text-green-400">{{ tx.recipient[:20] }}...</span></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-yellow-400 font-bold">{{ tx.amount }} {{ tx.token }}</span>
+                        {% if tx.data and tx.data.type == 'jewelry_certification' %}
+                        <a href="/explorer/certificate/{{ tx.data.certificate_id }}" class="px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded-full text-sm hover:bg-yellow-500/30">
+                            📜 Ver Certificado
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-center py-8">No hay transacciones en este bloque</p>
+            {% endif %}
+        </div>
+    </section>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oriluxchain Explorer</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #D4AF37;
+            --gold-light: #F4E4BC;
+            --dark: #1a1a2e;
+            --darker: #0f0f1a;
+        }
+        body {
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            min-height: 100vh;
+        }
+        .gold-gradient {
+            background: linear-gradient(135deg, var(--gold) 0%, #B8860B 100%);
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        .hash-text {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body class="text-white">
+    <!-- Header -->
+    <header class="gold-gradient py-4 shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                        <span class="text-2xl">⛓️</span>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-white">Oriluxchain Explorer</h1>
+                        <p class="text-sm text-white/80">Blockchain de Certificación de Joyería</p>
+                    </div>
+                </div>
+                <form action="/explorer/search" method="GET" class="flex gap-2">
+                    <input type="text" name="q" placeholder="Buscar hash, bloque, certificado..." 
+                           class="px-4 py-2 rounded-lg bg-white/20 text-white placeholder-white/60 border border-white/30 focus:outline-none focus:border-white w-80">
+                    <button type="submit" class="px-4 py-2 bg-white/20 rounded-lg hover:bg-white/30 transition">
+                        🔍
+                    </button>
+                </form>
+            </div>
+        </div>
+    </header>
+
+    <!-- Stats -->
+    <section class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="card rounded-xl p-6 text-center">
+                <p class="text-3xl font-bold text-yellow-400">{{ stats.total_blocks }}</p>
+                <p class="text-gray-400">Bloques Totales</p>
+            </div>
+            <div class="card rounded-xl p-6 text-center">
+                <p class="text-3xl font-bold text-green-400">{{ stats.total_transactions }}</p>
+                <p class="text-gray-400">Transacciones</p>
+            </div>
+            <div class="card rounded-xl p-6 text-center">
+                <p class="text-3xl font-bold text-blue-400">{{ stats.pending_transactions }}</p>
+                <p class="text-gray-400">Pendientes</p>
+            </div>
+            <div class="card rounded-xl p-6 text-center">
+                <p class="text-3xl font-bold text-purple-400">{{ stats.difficulty }}</p>
+                <p class="text-gray-400">Dificultad</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recent Blocks -->
+    <section class="container mx-auto px-4 pb-12">
+        <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+            <span class="text-yellow-400">📦</span> Últimos Bloques
+        </h2>
+        <div class="card rounded-xl overflow-hidden">
+            <table class="w-full">
+                <thead class="bg-white/10">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-yellow-400">Bloque</th>
+                        <th class="px-6 py-4 text-left text-yellow-400">Hash</th>
+                        <th class="px-6 py-4 text-left text-yellow-400">Transacciones</th>
+                        <th class="px-6 py-4 text-left text-yellow-400">Tiempo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for block in blocks %}
+                    <tr class="border-t border-white/10 hover:bg-white/5 transition">
+                        <td class="px-6 py-4">
+                            <a href="/explorer/block/{{ block.index }}" class="text-yellow-400 hover:underline font-bold">
+                                #{{ block.index }}
+                            </a>
+                        </td>
+                        <td class="px-6 py-4 hash-text">
+                            <a href="/explorer/block/{{ block.index }}" class="text-blue-400 hover:underline">
+                                {{ block.hash }}
+                            </a>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-sm">
+                                {{ block.transactions_count }} txs
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-gray-400">
+                            {{ block.timestamp | int }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/10 py-6">
+        <div class="container mx-auto px-4 text-center text-gray-500">
+            <p>Oriluxchain Explorer - {{ stats.network }}</p>
+            <p class="text-sm mt-2">Powered by Veralix.io</p>
+        </div>
+    </footer>
+</body>
+</html>

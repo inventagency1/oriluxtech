@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, render_template, send_from_directory
+from flask import Flask, jsonify, request, render_template, send_from_directory, redirect
 from flask_cors import CORS
 from blockchain import Blockchain
 from node import Node
@@ -7,6 +7,8 @@ from transaction import Transaction
 from jewelry_certification import JewelryCertificationSystem, JewelryItem, JewelryCertificate
 from evm_rpc import create_evm_rpc_blueprint, get_evm_config
 import os
+import json
+import hashlib
 
 # SECURITY FIX: Importar módulos de seguridad
 try:
@@ -97,6 +99,7 @@ class BlockchainAPI:
         # Registrar rutas
         self.register_routes()
         self.setup_jewelry_routes()
+        self.setup_explorer_routes()
         
         # Registrar EVM JSON-RPC Blueprint
         evm_blueprint = create_evm_rpc_blueprint(self.blockchain, self.wallet)
@@ -1170,6 +1173,242 @@ class BlockchainAPI:
             return jsonify({
                 'success': True,
                 'statistics': stats
+            }), 200
+    
+    def setup_explorer_routes(self):
+        """Configura las rutas del explorador público de blockchain."""
+        
+        @self.app.route('/explorer')
+        def explorer_home():
+            """Página principal del explorador."""
+            chain = self.blockchain.chain
+            pending = self.blockchain.pending_transactions
+            
+            # Estadísticas generales
+            stats = {
+                'total_blocks': len(chain),
+                'total_transactions': self.blockchain.total_transactions,
+                'pending_transactions': len(pending),
+                'difficulty': self.blockchain.difficulty,
+                'last_block_time': chain[-1].timestamp if chain else None,
+                'network': 'Oriluxchain Mainnet'
+            }
+            
+            # Últimos bloques
+            recent_blocks = []
+            for block in reversed(chain[-10:]):
+                recent_blocks.append({
+                    'index': block.index,
+                    'hash': block.hash[:16] + '...',
+                    'full_hash': block.hash,
+                    'previous_hash': block.previous_hash[:16] + '...',
+                    'timestamp': block.timestamp,
+                    'transactions_count': len(block.transactions),
+                    'nonce': block.nonce
+                })
+            
+            return render_template('explorer.html', stats=stats, blocks=recent_blocks)
+        
+        @self.app.route('/explorer/block/<int:block_index>')
+        def explorer_block(block_index):
+            """Ver detalles de un bloque específico."""
+            if block_index < 0 or block_index >= len(self.blockchain.chain):
+                return render_template('explorer_error.html', error='Bloque no encontrado'), 404
+            
+            block = self.blockchain.chain[block_index]
+            block_data = {
+                'index': block.index,
+                'hash': block.hash,
+                'previous_hash': block.previous_hash,
+                'timestamp': block.timestamp,
+                'nonce': block.nonce,
+                'transactions': block.transactions
+            }
+            
+            return render_template('explorer_block.html', block=block_data)
+        
+        @self.app.route('/explorer/tx/<tx_hash>')
+        def explorer_transaction(tx_hash):
+            """Ver detalles de una transacción por hash."""
+            # Buscar en todos los bloques
+            for block in self.blockchain.chain:
+                for tx in block.transactions:
+                    # Generar hash de la transacción para comparar
+                    tx_data = json.dumps(tx.get('data', {}), sort_keys=True) if tx.get('data') else ''
+                    calculated_hash = hashlib.sha256(tx_data.encode()).hexdigest() if tx_data else ''
+                    
+                    if tx_hash in [f"0x{calculated_hash}", calculated_hash, tx.get('hash', '')]:
+                        return render_template('explorer_tx.html', 
+                            transaction=tx, 
+                            block_index=block.index,
+                            block_hash=block.hash,
+                            tx_hash=tx_hash
+                        )
+            
+            # Buscar en certificados de joyería
+            for cert_id, cert in self.jewelry_system.certificates.items():
+                if cert.blockchain_tx == tx_hash:
+                    return render_template('explorer_certificate.html',
+                        certificate=cert.to_dict(),
+                        tx_hash=tx_hash
+                    )
+            
+            return render_template('explorer_error.html', error='Transacción no encontrada'), 404
+        
+        @self.app.route('/explorer/certificate/<certificate_id>')
+        @self.app.route('/verify/<certificate_id>')
+        def explorer_certificate(certificate_id):
+            """Ver certificado de joyería."""
+            # Buscar en el sistema de certificación
+            cert = self.jewelry_system.certificates.get(certificate_id)
+            
+            if cert:
+                return render_template('explorer_certificate.html',
+                    certificate=cert.to_dict(),
+                    tx_hash=cert.blockchain_tx,
+                    verified=True
+                )
+            
+            # Si no está en memoria, buscar por patrón en transacciones
+            for block in self.blockchain.chain:
+                for tx in block.transactions:
+                    if tx.get('data', {}).get('certificate_id') == certificate_id:
+                        return render_template('explorer_certificate.html',
+                            certificate=tx.get('data'),
+                            tx_hash=tx.get('hash', ''),
+                            block_index=block.index,
+                            verified=True
+                        )
+            
+            return render_template('explorer_error.html', 
+                error=f'Certificado {certificate_id} no encontrado'), 404
+        
+        @self.app.route('/explorer/address/<address>')
+        def explorer_address(address):
+            """Ver transacciones de una dirección."""
+            transactions = []
+            
+            for block in self.blockchain.chain:
+                for tx in block.transactions:
+                    if tx.get('sender') == address or tx.get('recipient') == address:
+                        transactions.append({
+                            **tx,
+                            'block_index': block.index,
+                            'block_hash': block.hash
+                        })
+            
+            # Obtener balance
+            balance = self.blockchain.get_balance(address)
+            
+            return render_template('explorer_address.html',
+                address=address,
+                balance=balance,
+                transactions=transactions,
+                tx_count=len(transactions)
+            )
+        
+        @self.app.route('/explorer/search')
+        def explorer_search():
+            """Buscar por hash, bloque, dirección o certificado."""
+            query = request.args.get('q', '').strip()
+            
+            if not query:
+                return redirect('/explorer')
+            
+            # Intentar como número de bloque
+            try:
+                block_index = int(query)
+                if 0 <= block_index < len(self.blockchain.chain):
+                    return redirect(f'/explorer/block/{block_index}')
+            except ValueError:
+                pass
+            
+            # Intentar como hash de transacción
+            if query.startswith('0x') or len(query) == 64:
+                return redirect(f'/explorer/tx/{query}')
+            
+            # Intentar como certificado
+            if query.startswith('CERT-') or query.startswith('VRX-'):
+                return redirect(f'/explorer/certificate/{query}')
+            
+            # Intentar como dirección
+            if len(query) >= 20:
+                return redirect(f'/explorer/address/{query}')
+            
+            return render_template('explorer_error.html', 
+                error=f'No se encontraron resultados para: {query}'), 404
+        
+        # API endpoints para el explorador
+        @self.app.route('/api/explorer/blocks', methods=['GET'])
+        def api_explorer_blocks():
+            """API: Obtener últimos bloques."""
+            limit = min(int(request.args.get('limit', 10)), 100)
+            offset = int(request.args.get('offset', 0))
+            
+            blocks = []
+            chain = self.blockchain.chain
+            start = max(0, len(chain) - offset - limit)
+            end = len(chain) - offset
+            
+            for block in reversed(chain[start:end]):
+                blocks.append({
+                    'index': block.index,
+                    'hash': block.hash,
+                    'previous_hash': block.previous_hash,
+                    'timestamp': block.timestamp,
+                    'transactions_count': len(block.transactions),
+                    'nonce': block.nonce
+                })
+            
+            return jsonify({
+                'success': True,
+                'blocks': blocks,
+                'total': len(chain)
+            }), 200
+        
+        @self.app.route('/api/explorer/transactions', methods=['GET'])
+        def api_explorer_transactions():
+            """API: Obtener últimas transacciones."""
+            limit = min(int(request.args.get('limit', 20)), 100)
+            
+            transactions = []
+            for block in reversed(self.blockchain.chain):
+                for tx in reversed(block.transactions):
+                    transactions.append({
+                        **tx,
+                        'block_index': block.index,
+                        'block_hash': block.hash
+                    })
+                    if len(transactions) >= limit:
+                        break
+                if len(transactions) >= limit:
+                    break
+            
+            return jsonify({
+                'success': True,
+                'transactions': transactions,
+                'total': self.blockchain.total_transactions
+            }), 200
+        
+        @self.app.route('/api/explorer/certificates', methods=['GET'])
+        def api_explorer_certificates():
+            """API: Obtener todos los certificados de joyería."""
+            certificates = []
+            for cert_id, cert in self.jewelry_system.certificates.items():
+                certificates.append({
+                    'certificate_id': cert_id,
+                    'owner': cert.owner,
+                    'issuer': cert.issuer,
+                    'issue_date': cert.issue_date,
+                    'status': cert.status,
+                    'blockchain_tx': cert.blockchain_tx,
+                    'verification_url': cert.verification_url
+                })
+            
+            return jsonify({
+                'success': True,
+                'certificates': certificates,
+                'total': len(certificates)
             }), 200
     
     def run(self, debug=True):
