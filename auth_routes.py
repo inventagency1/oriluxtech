@@ -124,7 +124,9 @@ def init_auth(app):
             '/api/stats', '/api/info', '/api/health', '/api/blocks',
             '/api/mining-status', '/api/difficulty', '/api/wallets',
             '/api/transactions/', '/api/blockchain/', '/api/jewelry/',
-            '/explorer', '/verify/', '/api/explorer/'
+            '/explorer', '/verify/', '/api/explorer/',
+            # Rutas de Veralix y certificados (públicas para integración)
+            '/api/veralix/', '/api/certificate/', '/api/certificates/'
         ]
         for route in public_api_routes:
             if request.path.startswith(route) or request.path == route.rstrip('/'):
