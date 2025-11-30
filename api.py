@@ -1204,7 +1204,7 @@ class BlockchainAPI:
                     'previous_hash': block.previous_hash[:16] + '...',
                     'timestamp': block.timestamp,
                     'transactions_count': len(block.transactions),
-                    'nonce': block.nonce
+                    'nonce': block.proof  # proof es el nonce en esta implementación
                 })
             
             return render_template('explorer.html', stats=stats, blocks=recent_blocks)
@@ -1221,7 +1221,7 @@ class BlockchainAPI:
                 'hash': block.hash,
                 'previous_hash': block.previous_hash,
                 'timestamp': block.timestamp,
-                'nonce': block.nonce,
+                'nonce': block.proof,
                 'transactions': block.transactions
             }
             
@@ -1357,7 +1357,7 @@ class BlockchainAPI:
                     'previous_hash': block.previous_hash,
                     'timestamp': block.timestamp,
                     'transactions_count': len(block.transactions),
-                    'nonce': block.nonce
+                    'nonce': block.proof
                 })
             
             return jsonify({
