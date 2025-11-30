@@ -991,9 +991,18 @@ class BlockchainAPI:
                     issuer=data.get('issuer')
                 )
                 
+                # Obtener número de bloque actual
+                latest_block = self.blockchain.get_latest_block()
+                block_number = latest_block.index if latest_block else 0
+                
                 return jsonify({
                     'success': True,
                     'certificate': certificate.to_dict(),
+                    'certificate_id': certificate.certificate_id,
+                    'blockchain_tx': certificate.blockchain_tx,
+                    'transaction_hash': certificate.blockchain_tx,
+                    'block_number': str(block_number),
+                    'verification_url': certificate.verification_url,
                     'message': 'Certificado creado exitosamente'
                 }), 201
                 
