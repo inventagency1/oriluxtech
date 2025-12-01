@@ -9,6 +9,9 @@ from evm_rpc import create_evm_rpc_blueprint, get_evm_config
 import os
 import json
 import hashlib
+import threading
+import time
+from datetime import datetime
 
 # SECURITY FIX: Importar módulos de seguridad
 try:
@@ -25,6 +28,11 @@ class BlockchainAPI:
     Proporciona endpoints para minar, crear transacciones, ver la cadena, etc.
     """
     
+    # Ruta del archivo de persistencia
+    PERSISTENCE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'blockchain_state.json')
+    CERTIFICATES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'certificates.json')
+    AUTO_SAVE_INTERVAL = 60  # Guardar cada 60 segundos
+    
     def __init__(self, port=5000):
         """
         Inicializa la API.
@@ -35,6 +43,9 @@ class BlockchainAPI:
         # Configurar Flask con rutas de templates y static
         template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
         static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+        
+        # Asegurar que existe el directorio de datos
+        os.makedirs(os.path.dirname(self.PERSISTENCE_FILE), exist_ok=True)
         
         self.app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
         
@@ -83,6 +94,9 @@ class BlockchainAPI:
         # Sistema de certificación de joyería
         self.jewelry_system = JewelryCertificationSystem(self.blockchain)
         
+        # PERSISTENCIA: Cargar estado guardado
+        self._load_persisted_state()
+        
         # SECURITY FIX: Inicializar seguridad
         if SECURITY_ENABLED:
             self.api_auth = APIAuth()
@@ -104,6 +118,9 @@ class BlockchainAPI:
         # Registrar EVM JSON-RPC Blueprint
         evm_blueprint = create_evm_rpc_blueprint(self.blockchain, self.wallet)
         self.app.register_blueprint(evm_blueprint)
+        
+        # PERSISTENCIA: Iniciar auto-guardado en background
+        self._start_auto_save()
         
         print("✅ Sistema de certificación de joyería inicializado")
         print(f"✅ EVM JSON-RPC habilitado - Chain ID: {get_evm_config()['chain_id']}")
@@ -994,6 +1011,9 @@ class BlockchainAPI:
                     issuer=data.get('issuer')
                 )
                 
+                # PERSISTENCIA: Guardar después de crear certificado
+                self.save_on_transaction()
+                
                 # Obtener número de bloque actual
                 latest_block = self.blockchain.get_latest_block()
                 block_number = latest_block.index if latest_block else 0
@@ -1441,6 +1461,9 @@ class BlockchainAPI:
                     issuer=data.get('issuer', 'Veralix.io')
                 )
                 
+                # PERSISTENCIA: Guardar después de sincronizar con Veralix
+                self.save_on_transaction()
+                
                 # Obtener número de bloque
                 latest_block = self.blockchain.get_latest_block()
                 block_number = latest_block.index if latest_block else 0
@@ -1461,6 +1484,83 @@ class BlockchainAPI:
                     'success': False,
                     'error': str(e)
                 }), 400
+    
+    # ==================== PERSISTENCIA ====================
+    
+    def _load_persisted_state(self):
+        """Carga el estado de la blockchain desde el archivo de persistencia."""
+        try:
+            if os.path.exists(self.PERSISTENCE_FILE):
+                with open(self.PERSISTENCE_FILE, 'r') as f:
+                    data = json.load(f)
+                
+                # Restaurar transacciones totales
+                self.blockchain.total_transactions = data.get('total_transactions', 0)
+                
+                # Restaurar certificados
+                certificates_count = data.get('certificates_count', 0)
+                
+                print(f"✅ Estado restaurado: {self.blockchain.total_transactions} transacciones, {certificates_count} certificados")
+            else:
+                print("ℹ️  No hay estado previo guardado, iniciando blockchain nueva")
+                
+            # Cargar certificados
+            if os.path.exists(self.CERTIFICATES_FILE):
+                with open(self.CERTIFICATES_FILE, 'r') as f:
+                    certs_data = json.load(f)
+                    self.jewelry_system.certificates = certs_data.get('certificates', {})
+                    print(f"✅ {len(self.jewelry_system.certificates)} certificados restaurados")
+                    
+        except Exception as e:
+            print(f"⚠️  Error cargando estado persistido: {e}")
+    
+    def _save_state(self):
+        """Guarda el estado actual de la blockchain."""
+        try:
+            # Guardar estado de blockchain
+            state = {
+                'total_transactions': self.blockchain.total_transactions,
+                'total_blocks': len(self.blockchain.chain),
+                'certificates_count': len(self.jewelry_system.certificates),
+                'difficulty': self.blockchain.difficulty,
+                'last_saved': datetime.now().isoformat(),
+                'pending_transactions': len(self.blockchain.pending_transactions)
+            }
+            
+            with open(self.PERSISTENCE_FILE, 'w') as f:
+                json.dump(state, f, indent=2)
+            
+            # Guardar certificados
+            certs_data = {
+                'certificates': self.jewelry_system.certificates,
+                'last_saved': datetime.now().isoformat()
+            }
+            
+            with open(self.CERTIFICATES_FILE, 'w') as f:
+                json.dump(certs_data, f, indent=2, default=str)
+            
+            print(f"💾 Estado guardado: {state['total_transactions']} tx, {state['certificates_count']} certs")
+            
+        except Exception as e:
+            print(f"⚠️  Error guardando estado: {e}")
+    
+    def _start_auto_save(self):
+        """Inicia el guardado automático en background."""
+        def auto_save_loop():
+            while True:
+                time.sleep(self.AUTO_SAVE_INTERVAL)
+                self._save_state()
+        
+        save_thread = threading.Thread(target=auto_save_loop, daemon=True)
+        save_thread.start()
+        print(f"✅ Auto-guardado iniciado (cada {self.AUTO_SAVE_INTERVAL}s)")
+    
+    def save_on_transaction(self):
+        """Guarda el estado después de cada transacción importante."""
+        # Guardar inmediatamente después de transacciones críticas
+        self._save_state()
+    
+    # ==================== FIN PERSISTENCIA ====================
     
     def run(self, debug=True):
         """
