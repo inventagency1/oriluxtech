@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  veralix-app:
+    container_name: veralix-frontend
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "3000:4173"
+    environment:
+      - NODE_ENV=production
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+      - VITE_SUPABASE_PUBLISHABLE_KEY=${VITE_SUPABASE_PUBLISHABLE_KEY}
+      - VITE_SUPABASE_PROJECT_ID=${VITE_SUPABASE_PROJECT_ID}
+    command: sh -c "npm install && npm run build && npm run preview -- --host 0.0.0.0 --port 4173"
+    restart: unless-stopped
+    networks:
+      - traefik_proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.veralix.rule=Host(`oriluxtech.com`) || Host(`www.oriluxtech.com`)"
+      - "traefik.http.routers.veralix.entrypoints=websecure"
+      - "traefik.http.routers.veralix.tls=true"
+      - "traefik.http.routers.veralix.tls.certresolver=letsencrypt"
+      - "traefik.http.services.veralix.loadbalancer.server.port=4173"
+      - "traefik.http.middlewares.veralix-redirect-www.redirectregex.regex=^https://www.oriluxtech.com/(.*)"
+      - "traefik.http.middlewares.veralix-redirect-www.redirectregex.replacement=https://oriluxtech.com/$${1}"
+      - "traefik.http.middlewares.veralix-redirect-www.redirectregex.permanent=true"
+      - "traefik.http.routers.veralix.middlewares=veralix-redirect-www"
+
+  # Opción alternativa con Nginx (mejor rendimiento para producción)
+  veralix-nginx:
+    container_name: veralix-nginx
+    image: nginx:alpine
+    volumes:
+      - ./dist:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "8080:80"
+    depends_on:
+      - veralix-builder
+    restart: unless-stopped
+    networks:
+      - traefik_proxy
+    labels:
+      - "traefik.enable=false"  # Cambiar a true si prefieres usar Nginx
+      - "traefik.http.routers.veralix-nginx.rule=Host(`oriluxtech.com`) || Host(`www.oriluxtech.com`)"
+      - "traefik.http.routers.veralix-nginx.entrypoints=websecure"
+      - "traefik.http.routers.veralix-nginx.tls=true"
+      - "traefik.http.routers.veralix-nginx.tls.certresolver=letsencrypt"
+      - "traefik.http.services.veralix-nginx.loadbalancer.server.port=80"
+
+  veralix-builder:
+    container_name: veralix-builder
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=production
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+      - VITE_SUPABASE_PUBLISHABLE_KEY=${VITE_SUPABASE_PUBLISHABLE_KEY}
+      - VITE_SUPABASE_PROJECT_ID=${VITE_SUPABASE_PROJECT_ID}
+    command: sh -c "npm install && npm run build"
+    profiles:
+      - build
+
+networks:
+  traefik_proxy:
+    external: true

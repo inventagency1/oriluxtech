@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orilux Logo - Futuristic Design</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 40px;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 60px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+        }
+        
+        .logo-variant {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 30px;
+            background: #fff;
+            border-radius: 12px;
+        }
+        
+        .logo-variant.dark {
+            background: #000;
+            border: 1px solid #222;
+        }
+        
+        /* Logo SVG Icon - Brillante/Diamante */
+        .orilux-icon {
+            width: 48px;
+            height: 48px;
+        }
+        
+        .orilux-icon-large {
+            width: 120px;
+            height: 120px;
+        }
+        
+        .logo-text {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: #000;
+        }
+        
+        .logo-variant.dark .logo-text {
+            color: #fff;
+        }
+        
+        .tagline {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: -8px;
+        }
+        
+        .logo-variant.dark .tagline {
+            color: #999;
+        }
+        
+        h2 {
+            color: #fff;
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 40px;
+        }
+        
+        .code-block {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-width: 800px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h2>Orilux Logo Variants</h2>
+    
+    <!-- Logo on White Background -->
+    <div class="logo-variant">
+        <svg class="orilux-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <!-- Diamante/Cristal Geométrico -->
+            <defs>
+                <linearGradient id="shine-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#000;stop-opacity:1" />
+                    <stop offset="50%" style="stop-color:#333;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#000;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            
+            <!-- Forma principal del diamante -->
+            <polygon points="50,10 85,40 50,90 15,40" fill="url(#shine-gradient)" />
+            
+            <!-- Facetas superiores -->
+            <polygon points="50,10 65,30 50,40" fill="#000" opacity="0.9"/>
+            <polygon points="50,10 35,30 50,40" fill="#000" opacity="0.7"/>
+            
+            <!-- Facetas inferiores -->
+            <polygon points="50,40 65,30 75,60" fill="#222" opacity="0.8"/>
+            <polygon points="50,40 35,30 25,60" fill="#111" opacity="0.8"/>
+            
+            <!-- Líneas de brillo -->
+            <line x1="50" y1="10" x2="50" y2="40" stroke="#fff" stroke-width="1" opacity="0.3"/>
+            <line x1="35" y1="30" x2="65" y2="30" stroke="#fff" stroke-width="0.5" opacity="0.2"/>
+        </svg>
+        
+        <div>
+            <div class="logo-text">ORILUX</div>
+            <div class="tagline">Blockchain Network</div>
+        </div>
+    </div>
+    
+    <!-- Logo on Dark Background -->
+    <div class="logo-variant dark">
+        <svg class="orilux-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="shine-gradient-light" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
+                    <stop offset="50%" style="stop-color:#ddd;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#fff;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            
+            <!-- Forma principal del diamante -->
+            <polygon points="50,10 85,40 50,90 15,40" fill="url(#shine-gradient-light)" />
+            
+            <!-- Facetas superiores -->
+            <polygon points="50,10 65,30 50,40" fill="#fff" opacity="0.9"/>
+            <polygon points="50,10 35,30 50,40" fill="#fff" opacity="0.7"/>
+            
+            <!-- Facetas inferiores -->
+            <polygon points="50,40 65,30 75,60" fill="#ddd" opacity="0.8"/>
+            <polygon points="50,40 35,30 25,60" fill="#eee" opacity="0.8"/>
+            
+            <!-- Líneas de brillo -->
+            <line x1="50" y1="10" x2="50" y2="40" stroke="#000" stroke-width="1" opacity="0.3"/>
+            <line x1="35" y1="30" x2="65" y2="30" stroke="#000" stroke-width="0.5" opacity="0.2"/>
+        </svg>
+        
+        <div>
+            <div class="logo-text">ORILUX</div>
+            <div class="tagline">Blockchain Network</div>
+        </div>
+    </div>
+    
+    <!-- Large Icon Only -->
+    <h2>Icon Only (Large)</h2>
+    
+    <div style="background: #fff; padding: 40px; border-radius: 12px;">
+        <svg class="orilux-icon-large" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="shine-gradient-2" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#000;stop-opacity:1" />
+                    <stop offset="50%" style="stop-color:#333;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#000;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            
+            <polygon points="50,10 85,40 50,90 15,40" fill="url(#shine-gradient-2)" />
+            <polygon points="50,10 65,30 50,40" fill="#000" opacity="0.9"/>
+            <polygon points="50,10 35,30 50,40" fill="#000" opacity="0.7"/>
+            <polygon points="50,40 65,30 75,60" fill="#222" opacity="0.8"/>
+            <polygon points="50,40 35,30 25,60" fill="#111" opacity="0.8"/>
+            <line x1="50" y1="10" x2="50" y2="40" stroke="#fff" stroke-width="1" opacity="0.3"/>
+            <line x1="35" y1="30" x2="65" y2="30" stroke="#fff" stroke-width="0.5" opacity="0.2"/>
+        </svg>
+    </div>
+    
+    <h2>SVG Code (Copy & Paste)</h2>
+    
+    <div class="code-block">
+&lt;!-- Orilux Logo Icon (Black on White) --&gt;
+&lt;svg width="48" height="48" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"&gt;
+    &lt;defs&gt;
+        &lt;linearGradient id="shine-gradient" x1="0%" y1="0%" x2="100%" y2="100%"&gt;
+            &lt;stop offset="0%" style="stop-color:#000;stop-opacity:1" /&gt;
+            &lt;stop offset="50%" style="stop-color:#333;stop-opacity:1" /&gt;
+            &lt;stop offset="100%" style="stop-color:#000;stop-opacity:1" /&gt;
+        &lt;/linearGradient&gt;
+    &lt;/defs&gt;
+    &lt;polygon points="50,10 85,40 50,90 15,40" fill="url(#shine-gradient)" /&gt;
+    &lt;polygon points="50,10 65,30 50,40" fill="#000" opacity="0.9"/&gt;
+    &lt;polygon points="50,10 35,30 50,40" fill="#000" opacity="0.7"/&gt;
+    &lt;polygon points="50,40 65,30 75,60" fill="#222" opacity="0.8"/&gt;
+    &lt;polygon points="50,40 35,30 25,60" fill="#111" opacity="0.8"/&gt;
+    &lt;line x1="50" y1="10" x2="50" y2="40" stroke="#fff" stroke-width="1" opacity="0.3"/&gt;
+    &lt;line x1="35" y1="30" x2="65" y2="30" stroke="#fff" stroke-width="0.5" opacity="0.2"/&gt;
+&lt;/svg&gt;
+    </div>
+    
+    <h2>CSS Component Version</h2>
+    
+    <div class="code-block">
+/* Logo Component */
+.orilux-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.orilux-icon {
+    width: 40px;
+    height: 40px;
+}
+
+.orilux-text {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: #000; /* or #fff for dark mode */
+}
+
+.orilux-tagline {
+    font-size: 10px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+    </div>
+</body>
+</html>

@@ -77,10 +77,9 @@ class Blockchain:
         self.chain: List[Block] = []
         self.pending_transactions: List[Dict] = []
         self.difficulty = difficulty
-        self.mining_reward_orx = 50
-        self.mining_reward_vrx = 5
+        self.mining_reward = 50  # 50 VRX por bloque minado
         
-        # Sistema dual-token
+        # Sistema de tokens (VRX como token nativo)
         self.token_manager = TokenManager()
         self.staking_pool = StakingPool(self.token_manager)
         
@@ -90,6 +89,10 @@ class Blockchain:
         # Métricas
         self.total_transactions = 0
         self.total_blocks_mined = 0
+        
+        # SECURITY FIX: Protección double-spending
+        self.spent_transactions = set()  # IDs de transacciones ya gastadas
+        self.transaction_nonces = {}  # sender -> nonce counter
         
         # Crear el bloque génesis
         self.create_genesis_block()
@@ -126,6 +129,48 @@ class Blockchain:
             raise BlockchainError("Blockchain is empty")
         return self.chain[-1]
     
+    def _generate_transaction_id(self, transaction: Dict) -> str:
+        """
+        Genera un ID único para una transacción.
+        
+        Args:
+            transaction: Diccionario con datos de la transacción
+            
+        Returns:
+            Hash SHA-256 de la transacción
+        """
+        import json
+        tx_string = json.dumps({
+            'sender': transaction['sender'],
+            'recipient': transaction['recipient'],
+            'amount': transaction['amount'],
+            'token': transaction['token'],
+            'timestamp': transaction.get('timestamp', time()),
+            'nonce': transaction.get('nonce', 0)
+        }, sort_keys=True)
+        
+        return hashlib.sha256(tx_string.encode()).hexdigest()
+    
+    def _is_transaction_spent(self, tx_id: str) -> bool:
+        """Verifica si una transacción ya fue gastada."""
+        return tx_id in self.spent_transactions
+    
+    def _mark_transaction_spent(self, tx_id: str):
+        """Marca una transacción como gastada."""
+        self.spent_transactions.add(tx_id)
+    
+    def _get_next_nonce(self, sender: str) -> int:
+        """Obtiene el siguiente nonce para un sender."""
+        if sender not in self.transaction_nonces:
+            self.transaction_nonces[sender] = 0
+        return self.transaction_nonces[sender]
+    
+    def _increment_nonce(self, sender: str):
+        """Incrementa el nonce de un sender."""
+        if sender not in self.transaction_nonces:
+            self.transaction_nonces[sender] = 0
+        self.transaction_nonces[sender] += 1
+    
     def validate_transaction(self, transaction: Dict) -> Tuple[bool, Optional[str]]:
         """
         Valida una transacción antes de añadirla.
@@ -146,18 +191,77 @@ class Blockchain:
         if not isinstance(transaction['amount'], (int, float)):
             return False, "Amount must be a number"
         
-        if transaction['amount'] <= 0:
-            return False, "Amount must be positive"
+        # Permitir amount=0 solo para transacciones de sistema (NETWORK)
+        # Esto es necesario para eventos de certificación, transferencias de propiedad, etc.
+        if transaction['amount'] < 0:
+            return False, "Amount cannot be negative"
+        
+        if transaction['amount'] == 0 and transaction['sender'] != 'NETWORK':
+            return False, "Amount must be positive for non-system transactions"
         
         # Validar token
         if transaction['token'] not in ['ORX', 'VRX']:
             return False, f"Invalid token: {transaction['token']}"
+        
+        # SECURITY FIX: Verificar double-spending
+        if transaction['sender'] not in ['NETWORK', 'GENESIS', 'MINING_POOL', 'BRIDGE_LOCK', 'BRIDGE_UNLOCK']:
+            # Agregar nonce si no existe
+            if 'nonce' not in transaction:
+                transaction['nonce'] = self._get_next_nonce(transaction['sender'])
+            
+            # Generar ID de transacción
+            tx_id = self._generate_transaction_id(transaction)
+            
+            # Verificar si ya fue gastada
+            if self._is_transaction_spent(tx_id):
+                return False, "Transaction already spent (double-spending detected)"
+            
+            # Verificar nonce correcto
+            expected_nonce = self._get_next_nonce(transaction['sender'])
+            if transaction['nonce'] != expected_nonce:
+                return False, f"Invalid nonce. Expected {expected_nonce}, got {transaction['nonce']}"
         
         # Validar balance (excepto transacciones de red)
         if transaction['sender'] != 'NETWORK':
             balance = self.get_balance(transaction['sender'], transaction['token'])
             if balance < transaction['amount']:
                 return False, f"Insufficient balance. Has {balance}, needs {transaction['amount']}"
+        
+        # SECURITY FIX: Validar firma digital
+        if transaction['sender'] not in ['NETWORK', 'GENESIS', 'MINING_POOL', 'BRIDGE_LOCK', 'BRIDGE_UNLOCK']:
+            if 'signature' not in transaction:
+                return False, "Missing transaction signature"
+            
+            if 'public_key' not in transaction:
+                return False, "Missing public key"
+            
+            # Verificar firma usando Wallet
+            try:
+                from wallet import Wallet
+                from transaction import Transaction
+                
+                # Reconstruir datos para verificación
+                tx_data = {
+                    'sender': transaction['sender'],
+                    'recipient': transaction['recipient'],
+                    'amount': transaction['amount'],
+                    'timestamp': transaction.get('timestamp', time())
+                }
+                
+                # Verificar firma
+                import json
+                data_string = json.dumps(tx_data, sort_keys=True)
+                
+                if not Wallet.verify_signature(
+                    transaction['public_key'],
+                    data_string,
+                    transaction['signature']
+                ):
+                    return False, "Invalid transaction signature"
+                    
+            except Exception as e:
+                logger.error(f"Signature verification failed: {e}")
+                return False, f"Signature verification error: {str(e)}"
         
         return True, None
     
@@ -166,7 +270,8 @@ class Blockchain:
         sender: str,
         recipient: str,
         amount: float,
-        token: str = 'ORX'
+        token: str = 'ORX',
+        data: Optional[Dict] = None  # Agregado soporte para data
     ) -> int:
         """
         Añade una nueva transacción a la lista de transacciones pendientes.
@@ -176,6 +281,7 @@ class Blockchain:
             recipient: Dirección del destinatario
             amount: Cantidad a transferir
             token: Token a transferir (ORX o VRX)
+            data: Datos adicionales opcionales (para certificados, smart contracts, etc.)
             
         Returns:
             Índice del bloque que contendrá esta transacción
@@ -188,7 +294,8 @@ class Blockchain:
             'recipient': recipient,
             'amount': amount,
             'token': token,
-            'timestamp': time()
+            'timestamp': time(),
+            'data': data  # Guardar data en la transacción
         }
         
         # Validar transacción
@@ -200,6 +307,12 @@ class Blockchain:
         # Verificar límite de transacciones pendientes
         if len(self.pending_transactions) >= self.MAX_TRANSACTIONS_PER_BLOCK:
             logger.warning("Max pending transactions reached, transaction queued")
+        
+        # SECURITY FIX: Marcar transacción como gastada e incrementar nonce
+        if sender not in ['NETWORK', 'GENESIS', 'MINING_POOL', 'BRIDGE_LOCK', 'BRIDGE_UNLOCK']:
+            tx_id = self._generate_transaction_id(transaction)
+            self._mark_transaction_spent(tx_id)
+            self._increment_nonce(sender)
         
         self.pending_transactions.append(transaction)
         self.total_transactions += 1
@@ -282,28 +395,18 @@ class Blockchain:
         return block
     
     def _add_mining_rewards(self, miner_address: str) -> None:
-        """Añade las recompensas de minería al minero."""
-        # Añadir transacciones de recompensa
-        self.pending_transactions.extend([
-            {
-                'sender': 'NETWORK',
-                'recipient': miner_address,
-                'amount': self.mining_reward_orx,
-                'token': 'ORX',
-                'timestamp': time()
-            },
-            {
-                'sender': 'NETWORK',
-                'recipient': miner_address,
-                'amount': self.mining_reward_vrx,
-                'token': 'VRX',
-                'timestamp': time()
-            }
-        ])
+        """Añade las recompensas de minería al minero (solo VRX)."""
+        # Añadir transacción de recompensa VRX
+        self.pending_transactions.append({
+            'sender': 'NETWORK',
+            'recipient': miner_address,
+            'amount': self.mining_reward,
+            'token': 'VRX',
+            'timestamp': time()
+        })
         
-        # Acuñar recompensas
-        self.token_manager.orx.mint(miner_address, self.mining_reward_orx)
-        self.token_manager.vrx.mint(miner_address, self.mining_reward_vrx)
+        # Acuñar recompensa VRX
+        self.token_manager.vrx.mint(miner_address, self.mining_reward)
     
     def _adjust_difficulty(self, mining_time: float) -> None:
         """
@@ -455,8 +558,8 @@ class Blockchain:
             'total_transactions': self.total_transactions,
             'pending_transactions': len(self.pending_transactions),
             'difficulty': self.difficulty,
-            'mining_reward_orx': self.mining_reward_orx,
-            'mining_reward_vrx': self.mining_reward_vrx,
+            'mining_reward': self.mining_reward,
+            'native_token': 'VRX',
             'is_valid': self.is_chain_valid()
         }
     

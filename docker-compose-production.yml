@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  oriluxchain:
+    image: ${DOCKER_USERNAME}/oriluxchain:latest
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - DIFFICULTY=3
+      - VERALIX_URL=https://veralix.io
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - blockchain_data:/app/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.oriluxchain.rule=Host(`chain.oriluxtech.com`)"
+      - "traefik.http.routers.oriluxchain.entrypoints=websecure"
+      - "traefik.http.routers.oriluxchain.tls.certresolver=letsencrypt"
+      - "traefik.http.services.oriluxchain.loadbalancer.server.port=5000"
+
+volumes:
+  blockchain_data:
+    driver: local

@@ -3,53 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oriluxchain - Panel de Control Completo</title>
+    <title>Oriluxchain - Dashboard Overview</title>
+    <link rel="stylesheet" href="/static/css/veralix-theme.css">
     <link rel="stylesheet" href="/static/css/dashboard.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+Paaji+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <!-- Sidebar Navigation -->
     <div class="sidebar">
         <div class="sidebar-header">
-            <h2>⛓️ Oriluxchain</h2>
-            <p>v1.0.0</p>
+            <div class="sidebar-logo">OX</div>
+            <h2>ORILUXCHAIN</h2>
+            <p>Blockchain Explorer</p>
         </div>
         
         <nav class="sidebar-nav">
             <a href="#" class="nav-item active" data-section="overview">
                 <span class="icon">📊</span>
-                <span>Resumen</span>
+                <span>Overview</span>
             </a>
             <a href="#" class="nav-item" data-section="blockchain">
-                <span class="icon">🔗</span>
+                <span class="icon">⛓️</span>
                 <span>Blockchain</span>
             </a>
             <a href="#" class="nav-item" data-section="transactions">
-                <span class="icon">💸</span>
-                <span>Transacciones</span>
+                <span class="icon">📄</span>
+                <span>Transactions</span>
             </a>
             <a href="#" class="nav-item" data-section="wallets">
-                <span class="icon">💼</span>
+                <span class="icon">💎</span>
                 <span>Wallets</span>
             </a>
             <a href="#" class="nav-item" data-section="mining">
-                <span class="icon">⛏️</span>
-                <span>Minería</span>
+                <span class="icon">⚡</span>
+                <span>Mining</span>
             </a>
             <a href="#" class="nav-item" data-section="network">
                 <span class="icon">🌐</span>
-                <span>Red P2P</span>
+                <span>Network</span>
             </a>
-            <a href="#" class="nav-item" data-section="explorer">
-                <span class="icon">🔍</span>
-                <span>Explorador</span>
+            <a href="#" class="nav-item" data-section="smart-contracts">
+                <span class="icon">📜</span>
+                <span>Smart Contracts</span>
+            </a>
+            <a href="/profile" class="nav-item" data-section="profile">
+                <span class="icon">👤</span>
+                <span>Profile</span>
             </a>
             <a href="#" class="nav-item" data-section="settings">
                 <span class="icon">⚙️</span>
-                <span>Configuración</span>
+                <span>Settings</span>
             </a>
         </nav>
 
@@ -57,8 +63,8 @@
             <div class="node-status">
                 <div class="status-indicator online"></div>
                 <div>
-                    <div class="status-label">Estado del Nodo</div>
-                    <div class="status-value">En Línea</div>
+                    <div class="status-label">NODE STATUS</div>
+                    <div class="status-value">ONLINE</div>
                 </div>
             </div>
         </div>
@@ -80,7 +86,7 @@
                 </div>
                 <div class="wallet-quick-info">
                     <div class="wallet-balance">
-                        <span id="topBarBalance">0</span> OLX
+                        <span id="topBarBalance">0</span> VRX
                     </div>
                 </div>
             </div>
@@ -113,7 +119,7 @@
                     <div class="metric-icon">💰</div>
                     <div class="metric-content">
                         <div class="metric-label">Balance Total</div>
-                        <div class="metric-value"><span id="totalBalance">0</span> OLX</div>
+                        <div class="metric-value"><span id="totalBalance">0</span> VRX</div>
                         <div class="metric-change positive">+50 último bloque</div>
                     </div>
                 </div>
@@ -233,7 +239,7 @@
                         </div>
                         <div class="stat-item">
                             <div class="stat-label">Recompensas Totales</div>
-                            <div class="stat-value"><span id="totalRewards">0</span> OLX</div>
+                            <div class="stat-value"><span id="totalRewards">0</span> VRX</div>
                         </div>
                         <div class="stat-item">
                             <div class="stat-label">Último Tiempo</div>
@@ -254,7 +260,7 @@
                     </div>
                     <div class="config-item">
                         <label>Recompensa por Bloque</label>
-                        <div class="reward-display">50 OLX</div>
+                        <div class="reward-display">50 VRX</div>
                     </div>
                     <div class="config-item">
                         <label>Transacciones Pendientes</label>
@@ -382,7 +388,7 @@
                         <input type="text" id="txRecipient" required>
                     </div>
                     <div class="form-group">
-                        <label>Cantidad (OLX)</label>
+                        <label>Cantidad (VRX)</label>
                         <input type="number" id="txAmount" step="0.01" min="0.01" required>
                     </div>
                     <div class="modal-actions">

@@ -1,0 +1,28 @@
+{
+  "name": "veralix-contract",
+  "version": "1.0.0",
+  "description": "Veralix NFT Certificate Smart Contract for Crestchain",
+  "scripts": {
+    "compile": "hardhat compile",
+    "deploy": "hardhat run scripts/deploy.js --network crestchain",
+    "verify": "hardhat verify --network crestchain",
+    "test": "hardhat test"
+  },
+  "keywords": [
+    "veralix",
+    "nft",
+    "certificate",
+    "crestchain",
+    "jewelry"
+  ],
+  "author": "Veralix",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "dotenv": "^16.3.1",
+    "hardhat": "^2.19.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.4.0"
+  }
+}

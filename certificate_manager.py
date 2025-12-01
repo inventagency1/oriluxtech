@@ -1,17 +1,25 @@
 """
 ORILUXCHAIN - Certificate Manager
 Sistema de gestión de certificados de joyería desde Veralix.io
+PARCHE 2.6: Validación robusta de certificados
 """
 
 import hashlib
 import json
 import logging
+import re
 from time import time
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 from datetime import datetime
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# PARCHE 2.6: Constantes de validación
+MAX_STRING_LENGTH = 500
+MAX_WEIGHT_VALUE = 10000  # gramos
+VALID_JEWELRY_TYPES = ['ring', 'necklace', 'bracelet', 'earring', 'pendant', 'watch', 'other']
+VALID_MATERIALS = ['gold', 'silver', 'platinum', 'palladium', 'titanium', 'steel', 'other']
 
 
 class JewelryCertificate:
@@ -83,20 +91,112 @@ class JewelryCertificate:
         }
     
     @staticmethod
-    def from_veralix_payload(payload: Dict) -> 'JewelryCertificate':
-        """Crea un certificado desde el payload de Veralix"""
-        return JewelryCertificate(
-            certificate_id=payload.get('certificate_id'),
-            jewelry_type=payload.get('jewelry_type'),
-            material=payload.get('material'),
-            weight=payload.get('weight'),
-            jeweler=payload.get('jeweler', {}),
-            owner=payload.get('owner', {}),
-            nft_data=payload.get('nft', {}),
-            stones=payload.get('stones', []),
-            images=payload.get('images', []),
-            metadata=payload.get('metadata', {})
-        )
+    def validate_certificate_data(payload: Dict) -> Tuple[bool, str]:
+        """
+        Valida los datos de un certificado.
+        PARCHE 2.6: Validación robusta implementada
+        
+        Returns:
+            tuple: (is_valid: bool, error_message: str)
+        """
+        # Validar campos requeridos
+        required_fields = ['certificate_id', 'jewelry_type', 'material', 'weight']
+        for field in required_fields:
+            if field not in payload or not payload[field]:
+                return False, f"Campo requerido faltante: {field}"
+        
+        # Validar certificate_id
+        cert_id = str(payload['certificate_id'])
+        if len(cert_id) > MAX_STRING_LENGTH:
+            return False, f"certificate_id demasiado largo (max: {MAX_STRING_LENGTH})"
+        if not re.match(r'^[a-zA-Z0-9_-]+$', cert_id):
+            return False, "certificate_id contiene caracteres inválidos"
+        
+        # Validar jewelry_type
+        jewelry_type = str(payload['jewelry_type']).lower()
+        if jewelry_type not in VALID_JEWELRY_TYPES:
+            return False, f"jewelry_type inválido. Debe ser uno de: {VALID_JEWELRY_TYPES}"
+        
+        # Validar material
+        material = str(payload['material']).lower()
+        if material not in VALID_MATERIALS:
+            return False, f"material inválido. Debe ser uno de: {VALID_MATERIALS}"
+        
+        # Validar weight
+        try:
+            weight_value = float(str(payload['weight']).replace('g', '').strip())
+            if weight_value <= 0 or weight_value > MAX_WEIGHT_VALUE:
+                return False, f"weight debe estar entre 0 y {MAX_WEIGHT_VALUE}g"
+        except ValueError:
+            return False, "weight debe ser un número válido"
+        
+        # Validar jeweler (si existe)
+        if 'jeweler' in payload and payload['jeweler']:
+            jeweler = payload['jeweler']
+            if not isinstance(jeweler, dict):
+                return False, "jeweler debe ser un objeto"
+            if 'name' in jeweler and len(str(jeweler['name'])) > MAX_STRING_LENGTH:
+                return False, "jeweler.name demasiado largo"
+        
+        # Validar owner (si existe)
+        if 'owner' in payload and payload['owner']:
+            owner = payload['owner']
+            if not isinstance(owner, dict):
+                return False, "owner debe ser un objeto"
+            if 'name' in owner and len(str(owner['name'])) > MAX_STRING_LENGTH:
+                return False, "owner.name demasiado largo"
+        
+        # Validar stones (si existe)
+        if 'stones' in payload and payload['stones']:
+            if not isinstance(payload['stones'], list):
+                return False, "stones debe ser una lista"
+            if len(payload['stones']) > 100:
+                return False, "Demasiadas piedras (max: 100)"
+        
+        # Validar images (si existe)
+        if 'images' in payload and payload['images']:
+            if not isinstance(payload['images'], list):
+                return False, "images debe ser una lista"
+            if len(payload['images']) > 20:
+                return False, "Demasiadas imágenes (max: 20)"
+            for img in payload['images']:
+                if not isinstance(img, str) or len(img) > 1000:
+                    return False, "URL de imagen inválida"
+        
+        return True, "Certificado válido"
+    
+    @staticmethod
+    def from_veralix_payload(payload: Dict) -> Tuple[Optional['JewelryCertificate'], str]:
+        """
+        Crea un certificado desde el payload de Veralix.
+        PARCHE 2.6: Con validación completa
+        
+        Returns:
+            tuple: (certificate: JewelryCertificate | None, error_message: str)
+        """
+        # PARCHE 2.6: Validar datos antes de crear
+        is_valid, error_msg = JewelryCertificate.validate_certificate_data(payload)
+        if not is_valid:
+            logger.warning(f"Certificado inválido: {error_msg}")
+            return None, error_msg
+        
+        try:
+            cert = JewelryCertificate(
+                certificate_id=str(payload['certificate_id']),
+                jewelry_type=str(payload['jewelry_type']).lower(),
+                material=str(payload['material']).lower(),
+                weight=str(payload['weight']),
+                jeweler=payload.get('jeweler', {}),
+                owner=payload.get('owner', {}),
+                nft_data=payload.get('nft', {}),
+                stones=payload.get('stones', []),
+                images=payload.get('images', []),
+                metadata=payload.get('metadata', {})
+            )
+            return cert, "Certificado creado exitosamente"
+        except Exception as e:
+            logger.error(f"Error creando certificado: {e}")
+            return None, f"Error creando certificado: {str(e)}"
 
 
 class CertificateManager:

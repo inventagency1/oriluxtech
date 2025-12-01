@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:5000';
+// Detectar URL base automáticamente
+const API_URL = window.location.origin;
 
 // Estado global
 let state = {
@@ -186,7 +187,7 @@ function createTransactionElement(tx) {
     
     div.innerHTML = `
         <div class="transaction-header">
-            <div class="transaction-amount">${tx.amount} OLX</div>
+            <div class="transaction-amount">${tx.amount} VRX</div>
             <span class="badge badge-warning">Pendiente</span>
         </div>
         <div class="transaction-addresses">

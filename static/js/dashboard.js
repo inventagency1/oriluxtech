@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:5000';
+// Detectar URL base automáticamente
+const API_URL = window.location.origin;
 
 // Estado global
 let state = {
@@ -305,7 +306,7 @@ function loadRecentActivity() {
     state.pendingTransactions.slice(-3).forEach(tx => {
         activities.push({
             icon: '💸',
-            title: `Nueva transacción: ${tx.amount} OLX`,
+            title: `Nueva transacción: ${tx.amount} VRX`,
             time: new Date(tx.timestamp * 1000).toLocaleString(),
             type: 'transaction'
         });
@@ -405,7 +406,7 @@ function renderTransactions(filter = 'all') {
         txEl.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                 <div style="font-size: 1.25rem; font-weight: 700; color: var(--primary);">
-                    ${tx.amount} OLX
+                    ${tx.amount} VRX
                 </div>
                 ${status}
             </div>
@@ -443,7 +444,7 @@ function renderWallets() {
                 ${badge}
             </div>
             <div class="wallet-address">${wallet.address}</div>
-            <div class="wallet-balance">${wallet.balance} OLX</div>
+            <div class="wallet-balance">${wallet.balance} VRX</div>
         `;
         
         container.appendChild(walletEl);

@@ -5,10 +5,14 @@ Script de inicio simplificado
 
 import os
 
+# Cargar variables de entorno desde .env
+from dotenv import load_dotenv
+load_dotenv()
+
 # Configurar variables de entorno
 os.environ.setdefault('PORT', '5000')
 os.environ.setdefault('DIFFICULTY', '3')
-os.environ.setdefault('VERALIX_URL', 'https://veralix.io')
+os.environ.setdefault('VERALIX_URL', 'http://localhost:8080')
 
 print("""
 ╔═══════════════════════════════════════════════════════════╗

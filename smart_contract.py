@@ -84,7 +84,18 @@ class SmartContractVM:
         self.memory['value'] = context.get('value', 0)
         self.memory['contract_address'] = context.get('contract_address')
         
+        # SECURITY FIX: Límite de iteraciones para prevenir loops infinitos
+        MAX_ITERATIONS = 10000
+        iteration_count = 0
+        
         for instruction in instructions:
+            # Verificar límite de iteraciones
+            iteration_count += 1
+            if iteration_count > MAX_ITERATIONS:
+                raise Exception(
+                    f"Execution limit exceeded: {MAX_ITERATIONS} iterations. "
+                    "Possible infinite loop detected."
+                )
             self._consume_gas(10)  # Gas base por instrucción
             
             op = instruction['op']
@@ -103,21 +114,33 @@ class SmartContractVM:
                 key = args[0]
                 self.stack.append(self.storage.get(key))
             elif op == 'ADD':
+                # SECURITY FIX: Validar stack underflow
+                if len(self.stack) < 2:
+                    raise Exception("Stack underflow: ADD requires 2 values")
                 b = self.stack.pop()
                 a = self.stack.pop()
                 self.stack.append(a + b)
             elif op == 'SUB':
+                if len(self.stack) < 2:
+                    raise Exception("Stack underflow: SUB requires 2 values")
                 b = self.stack.pop()
                 a = self.stack.pop()
                 self.stack.append(a - b)
             elif op == 'MUL':
+                if len(self.stack) < 2:
+                    raise Exception("Stack underflow: MUL requires 2 values")
                 b = self.stack.pop()
                 a = self.stack.pop()
                 self.stack.append(a * b)
             elif op == 'DIV':
+                if len(self.stack) < 2:
+                    raise Exception("Stack underflow: DIV requires 2 values")
                 b = self.stack.pop()
                 a = self.stack.pop()
-                self.stack.append(a / b if b != 0 else 0)
+                # SECURITY FIX: Lanzar error en división por cero
+                if b == 0:
+                    raise Exception("Division by zero")
+                self.stack.append(a / b)
             elif op == 'EQ':
                 b = self.stack.pop()
                 a = self.stack.pop()

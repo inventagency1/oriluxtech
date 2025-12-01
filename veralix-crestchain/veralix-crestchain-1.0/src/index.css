@@ -1,0 +1,260 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Veralix Design System - Basado en los colores oficiales del logo
+Colores extraídos del logo oficial veralix-logo.png y veralix-logo-new.png
+Todos los colores en HSL para compatibilidad completa con dark/light mode
+*/
+
+@layer base {
+  :root {
+    /* Colores Core Veralix - Light Mode */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 6%;
+
+    /* Paleta Oficial Manual de Marca Veralix */
+    --veralix-gold: 43 65% 55%;          /* #CFA349 - Dorado oficial del manual */
+    --veralix-gold-light: 43 70% 70%;    /* Variante clara */
+    --veralix-gold-dark: 43 60% 40%;     /* Variante oscura */
+    
+    /* Paleta Plateada Oficial */
+    --veralix-silver: 0 0% 79%;          /* #C9C9C9 - Plateado oficial del manual */
+    --veralix-silver-light: 0 0% 90%;    /* Variante clara */
+    --veralix-silver-dark: 0 0% 60%;     /* Variante oscura */
+
+    /* Negro y Blanco Oficiales */
+    --veralix-black: 0 0% 0%;            /* #000000 - Negro oficial del manual */
+    --veralix-black-soft: 0 0% 5%;       /* Negro suave */
+    --veralix-white: 0 0% 96%;           /* #F4F4F4 - Blanco oficial del manual */
+
+    /* Sistema Principal basado en Veralix */
+    --primary: var(--veralix-gold);
+    --primary-foreground: var(--veralix-black);
+    --primary-light: var(--veralix-gold-light);
+    --primary-dark: var(--veralix-gold-dark);
+
+    /* Sistema Secundario */
+    --secondary: var(--veralix-silver);
+    --secondary-foreground: var(--veralix-black);
+    --secondary-light: var(--veralix-silver-light);
+    --secondary-dark: var(--veralix-silver-dark);
+
+    /* Superficies y Tarjetas */
+    --card: 0 0% 100%;
+    --card-foreground: var(--veralix-black);
+    --card-premium: var(--veralix-black-soft);
+
+    /* Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: var(--veralix-black);
+
+    /* Muted & Accent */
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 48 85% 95%;                 /* Basado en oro claro */
+    --accent-foreground: var(--veralix-black);
+
+    /* Colores del Sistema */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: var(--veralix-gold);
+
+    /* Gradientes Oficiales Manual de Marca - Degradados suaves oro-blanco */
+    --gradient-veralix-gold: linear-gradient(135deg, #CFA349 0%, #F4F4F4 100%);
+    --gradient-veralix-premium: linear-gradient(135deg, #000000 0%, #CFA349 50%, #C9C9C9 100%);
+    --gradient-veralix-silver: linear-gradient(135deg, #C9C9C9 0%, #F4F4F4 100%);
+    --gradient-veralix-hero: linear-gradient(135deg, #000000 0%, #CFA349 50%, #000000 100%);
+
+    /* Sombras Oficiales Manual de Marca */
+    --shadow-veralix-gold: 0 10px 40px -10px rgba(207, 163, 73, 0.4);
+    --shadow-veralix-premium: 0 20px 60px -15px rgba(0, 0, 0, 0.5);
+    --shadow-veralix-silver: 0 4px 20px -5px rgba(201, 201, 201, 0.3);
+
+    /* Compatibilidad con nombres existentes */
+    --gold: var(--veralix-gold);
+    --gold-light: var(--veralix-gold-light);
+    --gradient-gold: var(--gradient-veralix-gold);
+    --gradient-crypto: var(--gradient-veralix-gold);
+    --gradient-premium: var(--gradient-veralix-premium);
+    --gradient-hero: var(--gradient-veralix-hero);
+    --shadow-gold: var(--shadow-veralix-gold);
+    --shadow-premium: var(--shadow-veralix-premium);
+    --shadow-crypto: var(--shadow-veralix-gold);
+
+    /* Tipografía Oficial Manual de Marca */
+    --font-heading: 'Baloo Paaji 2', system-ui, -apple-system, sans-serif;
+    --font-body: 'Baloo Paaji 2', system-ui, -apple-system, sans-serif;
+
+    /* Transiciones */
+    --transition-premium: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --radius: 0.75rem;
+
+    /* Sistema Sidebar */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 4%;
+    --sidebar-primary: 43 74% 49%;
+    --sidebar-primary-foreground: 0 0% 4%;
+    --sidebar-accent: 48 85% 95%;
+    --sidebar-accent-foreground: 0 0% 4%;
+    --sidebar-border: 0 0% 91%;
+    --sidebar-ring: 43 74% 49%;
+  }
+
+  .dark {
+    /* Colores Core Veralix - Dark Mode (basado en manual de marca) */
+    --background: 0 0% 0%;               /* Negro oficial */
+    --foreground: 0 0% 96%;              /* Blanco oficial */
+
+    /* En dark mode, el oro se mantiene vibrante */
+    --primary: var(--veralix-gold-light);     /* Oro más brillante en dark mode */
+    --primary-foreground: var(--veralix-black);
+    
+    /* Secundario ajustado para dark mode */
+    --secondary: var(--veralix-black-soft);
+    --secondary-foreground: 0 0% 98%;
+
+    /* Superficies en dark mode */
+    --card: var(--veralix-black-soft);
+    --card-foreground: 0 0% 98%;
+    --card-premium: var(--veralix-black);
+
+    /* Popover en dark mode */
+    --popover: var(--veralix-black-soft);
+    --popover-foreground: 0 0% 98%;
+
+    /* Muted & Accent en dark mode */
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 43 74% 15%;                     /* Oro muy oscuro para accent */
+    --accent-foreground: 0 0% 98%;
+
+    /* Colores del sistema en dark mode */
+    --destructive: 0 84% 65%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: var(--veralix-gold-light);
+
+    /* Sidebar en dark mode */
+    --sidebar-background: 0 0% 4%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 43 74% 49%;
+    --sidebar-primary-foreground: 0 0% 4%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 43 74% 49%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    font-family: 'Baloo Paaji 2', var(--font-body);
+    @apply bg-background text-foreground;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Baloo Paaji 2', var(--font-heading);
+    font-weight: 700;
+  }
+}
+
+/* Navigation States */
+@layer components {
+  .nav-item-active {
+    @apply bg-gradient-to-r from-veralix-gold/10 via-veralix-gold/5 to-transparent;
+    @apply border-l-4 border-veralix-gold;
+    @apply text-veralix-gold font-semibold;
+  }
+  
+  .nav-item-hover {
+    @apply hover:bg-veralix-gold/5 hover:text-veralix-gold;
+    @apply transition-all duration-200;
+  }
+  
+  .nav-group-header {
+    @apply text-xs uppercase tracking-wider font-semibold;
+    @apply text-veralix-gold/70 mb-2 px-3;
+  }
+}
+
+@layer base {
+
+  /* Efectos de Brillo Veralix */
+  .glow-veralix-gold {
+    box-shadow: 0 0 10px hsl(var(--veralix-gold)), 0 0 20px hsl(var(--veralix-gold)), 0 0 30px hsl(var(--veralix-gold));
+  }
+
+  .glow-veralix-silver {
+    box-shadow: 0 0 8px hsl(var(--veralix-silver)), 0 0 16px hsl(var(--veralix-silver));
+  }
+
+  /* Compatibilidad con nombres existentes */
+  .glow-gold {
+    box-shadow: 0 0 10px hsl(var(--veralix-gold)), 0 0 20px hsl(var(--veralix-gold)), 0 0 30px hsl(var(--veralix-gold));
+  }
+
+  .glow-primary {
+    box-shadow: 0 0 8px hsl(var(--primary)), 0 0 16px hsl(var(--primary));
+  }
+
+  .glow-accent {
+    box-shadow: 0 0 6px hsl(var(--accent)), 0 0 12px hsl(var(--accent));
+  }
+
+  /* Clases de Utilidad Veralix */
+  .bg-gradient-gold {
+    background: var(--gradient-veralix-gold);
+  }
+
+  .bg-gradient-premium {
+    background: var(--gradient-veralix-premium);
+  }
+
+  .bg-gradient-hero {
+    background: var(--gradient-veralix-hero);
+  }
+
+  .shadow-gold {
+    box-shadow: var(--shadow-veralix-gold);
+  }
+
+  .shadow-premium {
+    box-shadow: var(--shadow-veralix-premium);
+  }
+
+  .transition-premium {
+    transition: var(--transition-premium);
+  }
+
+  .transition-fast {
+    transition: var(--transition-fast);
+  }
+
+  /* Texto con gradiente Veralix */
+  .text-gradient-gold {
+    background: var(--gradient-veralix-gold);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  /* Ocultar scrollbars para tabs y scroll horizontal */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}

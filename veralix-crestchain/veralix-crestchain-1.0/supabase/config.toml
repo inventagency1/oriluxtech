@@ -1,0 +1,43 @@
+project_id = "hykegpmjnpaupvwptxtl"
+
+[functions.bold-payments]
+verify_jwt = false
+
+[functions.wompi-payments]
+verify_jwt = false
+
+[functions.create-wompi-payment-link]
+verify_jwt = true
+
+[functions.wompi-diagnostics]
+verify_jwt = false
+
+[functions.generate-nft-certificate]
+verify_jwt = false
+
+[functions.send-email]
+verify_jwt = false
+
+[functions.auth-email-hook]
+verify_jwt = false
+
+[functions.renew-subscriptions]
+verify_jwt = false
+
+[functions.ai-support-chat]
+verify_jwt = false
+
+[functions.marketplace-chat]
+verify_jwt = false
+
+[functions.cleanup-marketplace]
+verify_jwt = true
+
+[functions.generate-jewelry-images]
+verify_jwt = true
+
+[functions.enhance-jewelry-descriptions]
+verify_jwt = true
+
+[functions.oriluxchain-webhook]
+verify_jwt = false

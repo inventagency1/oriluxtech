@@ -3,60 +3,638 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ORILUXCHAIN - Futuristic Dashboard</title>
-    <link rel="stylesheet" href="/static/css/futuristic.css">
-    <link rel="stylesheet" href="/static/css/smart-contracts.css">
+    <title>ORILUXCHAIN - Blockchain Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/monochrome-theme.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Page transitions */
+        .section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+        .section.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Section header */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-6);
+            padding-bottom: var(--space-4);
+            border-bottom: 1px solid var(--border-light);
+        }
+        .section-header h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .section-actions {
+            display: flex;
+            gap: var(--space-3);
+        }
+        
+        /* Grid layouts */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-6);
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-4);
+        }
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-4);
+        }
+        @media (max-width: 1200px) {
+            .grid-2, .grid-3, .grid-4 { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+        }
+        
+        /* Mining specific */
+        .mining-control {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-xl);
+            padding: var(--space-8);
+            text-align: center;
+        }
+        .mining-status-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto var(--space-6);
+            background: linear-gradient(135deg, var(--white) 0%, var(--gray-300) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+        .mining-status-text {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .mining-btn {
+            width: 100%;
+            padding: var(--space-5);
+            margin-top: var(--space-6);
+            font-size: 1rem;
+        }
+        
+        /* Wallet card */
+        .wallet-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            transition: var(--transition);
+        }
+        .wallet-card:hover {
+            border-color: var(--border-medium);
+            transform: translateY(-2px);
+        }
+        .wallet-address {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            word-break: break-all;
+            margin-bottom: var(--space-4);
+            padding: var(--space-3);
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+        }
+        .wallet-balance {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+        .wallet-label {
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: var(--space-2);
+        }
+        .wallet-actions {
+            display: flex;
+            gap: var(--space-2);
+            margin-top: var(--space-4);
+            padding-top: var(--space-4);
+            border-top: 1px solid var(--border-light);
+        }
+        .wallet-actions .btn {
+            flex: 1;
+            padding: var(--space-2) var(--space-3);
+            font-size: 0.7rem;
+        }
+        
+        /* Block card */
+        .block-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: var(--space-5);
+            transition: var(--transition);
+        }
+        .block-card:hover {
+            border-color: var(--border-medium);
+        }
+        .block-number {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
+        }
+        .block-hash {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            word-break: break-all;
+        }
+        .block-meta {
+            display: flex;
+            gap: var(--space-4);
+            margin-top: var(--space-4);
+            padding-top: var(--space-4);
+            border-top: 1px solid var(--border-subtle);
+        }
+        .block-meta-item {
+            flex: 1;
+        }
+        .block-meta-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .block-meta-value {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        /* Transaction item */
+        .tx-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: var(--space-5);
+            margin-bottom: var(--space-3);
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            transition: var(--transition);
+        }
+        .tx-item:hover {
+            border-color: var(--border-medium);
+        }
+        .tx-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--white) 0%, var(--gray-300) 100%);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+        .tx-details {
+            flex: 1;
+            min-width: 0;
+        }
+        .tx-addresses {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        .tx-amount {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-align: right;
+        }
+        .tx-token {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+        
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: var(--space-12);
+            color: var(--text-tertiary);
+        }
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: var(--space-4);
+            opacity: 0.5;
+        }
+        .empty-state-text {
+            font-size: 1rem;
+            margin-bottom: var(--space-2);
+        }
+        .empty-state-hint {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+        
+        /* Config panel */
+        .config-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+        }
+        .config-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-4) 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .config-item:last-child {
+            border-bottom: none;
+        }
+        .config-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .config-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        /* Network node */
+        .node-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: var(--space-5);
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+        .node-indicator {
+            width: 12px;
+            height: 12px;
+            background: var(--success);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .node-url {
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            flex: 1;
+        }
+        
+        /* Contract card */
+        .contract-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: var(--space-5);
+            transition: var(--transition);
+        }
+        .contract-card:hover {
+            border-color: var(--border-medium);
+        }
+        .contract-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
+        }
+        .contract-address {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            margin-bottom: var(--space-4);
+        }
+        .contract-functions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+        }
+        .contract-fn {
+            padding: var(--space-1) var(--space-3);
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+        }
+        
+        /* Profile styles */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-6);
+            padding: var(--space-8);
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-xl);
+            margin-bottom: var(--space-6);
+        }
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--white) 0%, var(--gray-300) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            flex-shrink: 0;
+            border: 3px solid var(--border-medium);
+        }
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .profile-info h2 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
+        }
+        .profile-info .username {
+            font-size: 0.875rem;
+            color: var(--text-tertiary);
+            margin-bottom: var(--space-3);
+        }
+        .profile-info .bio {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            max-width: 500px;
+        }
+        .profile-badges {
+            display: flex;
+            gap: var(--space-2);
+            margin-top: var(--space-4);
+        }
+        .profile-stats {
+            display: flex;
+            gap: var(--space-6);
+            margin-left: auto;
+        }
+        .profile-stat {
+            text-align: center;
+        }
+        .profile-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .profile-stat-label {
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        /* Form groups */
+        .form-group {
+            margin-bottom: var(--space-5);
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-5);
+        }
+        @media (max-width: 768px) {
+            .form-row { grid-template-columns: 1fr; }
+            .profile-header { flex-direction: column; text-align: center; }
+            .profile-stats { margin-left: 0; margin-top: var(--space-4); }
+        }
+        
+        /* Settings toggle */
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--bg-tertiary);
+            transition: 0.3s;
+            border-radius: 26px;
+            border: 1px solid var(--border-light);
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--text-tertiary);
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: var(--success-bg);
+            border-color: var(--success);
+        }
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+            background-color: var(--success);
+        }
+        
+        /* Settings row */
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-4) 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .settings-row:last-child {
+            border-bottom: none;
+        }
+        .settings-info h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-1);
+        }
+        .settings-info p {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+        }
+        
+        /* User menu in topbar */
+        .user-menu {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-2) var(--space-4);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .user-menu:hover {
+            border-color: var(--border-medium);
+        }
+        .user-menu-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--white) 0%, var(--gray-300) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+        }
+        .user-menu-name {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: var(--space-2);
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            min-width: 200px;
+            box-shadow: var(--shadow-lg);
+            display: none;
+            z-index: 100;
+        }
+        .user-dropdown.active {
+            display: block;
+        }
+        .user-dropdown a {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-3) var(--space-4);
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        .user-dropdown a:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        .user-dropdown a.danger {
+            color: var(--error);
+        }
+        .user-dropdown a.danger:hover {
+            background: var(--error-bg);
+        }
+    </style>
 </head>
 <body>
-    <!-- Animated Particle Background -->
-    <canvas id="particles-canvas"></canvas>
-    
     <div class="app-container">
-        <!-- GLASSMORPHIC SIDEBAR -->
+        <!-- SIDEBAR -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h2>⛓️ ORILUXCHAIN</h2>
-                <p>BLOCKCHAIN v1.0</p>
+                <a href="#" class="logo">
+                    <div class="logo-icon">OX</div>
+                    <div class="logo-text">ORILUXCHAIN</div>
+                </a>
             </div>
             
             <nav class="sidebar-nav">
                 <a href="#" class="nav-item active" data-section="overview">
-                    <span class="icon">📊</span>
-                    <span>OVERVIEW</span>
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                    </svg>
+                    <span>Overview</span>
                 </a>
                 <a href="#" class="nav-item" data-section="blockchain">
-                    <span class="icon">🔗</span>
-                    <span>BLOCKCHAIN</span>
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                    </svg>
+                    <span>Blockchain</span>
                 </a>
                 <a href="#" class="nav-item" data-section="transactions">
-                    <span class="icon">💸</span>
-                    <span>TRANSACTIONS</span>
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                    </svg>
+                    <span>Transactions</span>
                 </a>
                 <a href="#" class="nav-item" data-section="wallets">
-                    <span class="icon">💼</span>
-                    <span>WALLETS</span>
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                    </svg>
+                    <span>Wallets</span>
                 </a>
                 <a href="#" class="nav-item" data-section="mining">
-                    <span class="icon">⛏️</span>
-                    <span>MINING</span>
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    <span>Mining</span>
                 </a>
                 <a href="#" class="nav-item" data-section="network">
-                    <span class="icon">🌐</span>
-                    <span>NETWORK</span>
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                    </svg>
+                    <span>Network</span>
                 </a>
                 <a href="#" class="nav-item" data-section="contracts">
-                    <span class="icon">📜</span>
-                    <span>CONTRACTS</span>
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span>Smart Contracts</span>
                 </a>
-                <a href="#" class="nav-item" data-section="explorer">
-                    <span class="icon">🔍</span>
-                    <span>EXPLORER</span>
-                </a>
-                <a href="#" class="nav-item" data-section="settings">
-                    <span class="icon">⚙️</span>
-                    <span>SETTINGS</span>
-                </a>
+                
+                <div style="margin-top: auto; padding-top: var(--space-4); border-top: 1px solid var(--border-light);">
+                    <a href="#" class="nav-item" data-section="profile">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                        <span>Profile</span>
+                    </a>
+                    <a href="#" class="nav-item" data-section="settings">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        <span>Settings</span>
+                    </a>
+                </div>
             </nav>
             
             <div class="sidebar-footer">
@@ -72,176 +650,295 @@
         
         <!-- MAIN CONTENT -->
         <main class="main-content">
-            <!-- GLASSMORPHIC TOP BAR -->
             <header class="top-bar">
-                <div class="search-bar">
-                    <input type="text" id="globalSearch" placeholder="Search blocks, transactions, addresses...">
+                <div class="top-bar-left">
+                    <h1 id="pageTitle">Dashboard Overview</h1>
                 </div>
-                
-                <div class="top-bar-actions">
-                    <div class="notification-badge">
-                        <span>🔔</span>
-                        <span class="badge" id="notificationCount">0</span>
+                <div class="top-bar-right">
+                    <div class="status-badge">
+                        <div class="status-dot"></div>
+                        <span>Blockchain Active</span>
                     </div>
-                    <div class="wallet-quick-info">
-                        <span id="topBarBalance">0</span> OLX
+                    <button class="btn btn-outline" onclick="refreshAll()">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        Refresh
+                    </button>
+                    
+                    <div class="user-menu" onclick="toggleUserMenu()">
+                        <div class="user-menu-avatar" id="userMenuAvatar">👤</div>
+                        <span class="user-menu-name" id="userMenuName">User</span>
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                        
+                        <div class="user-dropdown" id="userDropdown">
+                            <a href="#" onclick="navigateToSection('profile'); return false;">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                                My Profile
+                            </a>
+                            <a href="#" onclick="navigateToSection('settings'); return false;">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                Settings
+                            </a>
+                            <a href="/logout" class="danger">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                </svg>
+                                Logout
+                            </a>
+                        </div>
                     </div>
                 </div>
             </header>
             
-            <!-- Alert Container -->
-            <div id="alertContainer" style="position: fixed; top: 100px; right: 2rem; z-index: 3000;"></div>
+            <div id="alertContainer"></div>
             
             <!-- OVERVIEW SECTION -->
             <section class="section active" id="overview-section">
-                <div class="section-header">
-                    <h1>OVERVIEW</h1>
-                    <div class="section-actions">
-                        <button class="btn btn-secondary" onclick="refreshAll()">🔄 REFRESH</button>
-                    </div>
-                </div>
-                
-                <!-- 3D GLASSMORPHIC METRICS -->
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <div class="metric-icon">🔗</div>
-                        <div class="metric-label">TOTAL BLOCKS</div>
-                        <div class="metric-value" id="totalBlocks">0</div>
-                        <div class="metric-change">↗ +1 today</div>
+                <div class="content-area">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Total Blocks</span>
+                                <div class="stat-icon">⛓️</div>
+                            </div>
+                            <div class="stat-value" id="totalBlocks">0</div>
+                            <div class="stat-change">blockchain height</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Wallet Balance</span>
+                                <div class="stat-icon">💰</div>
+                            </div>
+                            <div class="stat-value"><span id="totalBalance">0</span> VRX</div>
+                            <div class="stat-change">node wallet</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Pending TX</span>
+                                <div class="stat-icon">⏳</div>
+                            </div>
+                            <div class="stat-value" id="pendingCount">0</div>
+                            <div class="stat-change">awaiting confirmation</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Difficulty</span>
+                                <div class="stat-icon">⚡</div>
+                            </div>
+                            <div class="stat-value" id="difficultyMetric">0</div>
+                            <div class="stat-change">proof of work</div>
+                        </div>
                     </div>
                     
-                    <div class="metric-card">
-                        <div class="metric-icon">💰</div>
-                        <div class="metric-label">TOTAL BALANCE</div>
-                        <div class="metric-value"><span id="totalBalance">0</span> OLX</div>
-                        <div class="metric-change">↗ +50 last block</div>
+                    <div class="grid-2">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Blocks Mined</h3>
+                            </div>
+                            <div style="height: 200px;">
+                                <canvas id="blocksChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Transactions</h3>
+                            </div>
+                            <div style="height: 200px;">
+                                <canvas id="transactionsChart"></canvas>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="metric-card">
-                        <div class="metric-icon">⏳</div>
-                        <div class="metric-label">PENDING TX</div>
-                        <div class="metric-value" id="pendingCount">0</div>
-                        <div class="metric-change">transactions</div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Recent Blocks</h3>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Block</th>
+                                    <th>Hash</th>
+                                    <th>Transactions</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentBlocksTable">
+                                <tr><td colspan="4" class="empty-state">Loading...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
-                    
-                    <div class="metric-card">
-                        <div class="metric-icon">⚡</div>
-                        <div class="metric-label">DIFFICULTY</div>
-                        <div class="metric-value" id="difficultyMetric">0</div>
-                        <div class="metric-change">proof of work</div>
-                    </div>
-                </div>
-                
-                <!-- Charts -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
-                    <div style="background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 2rem;">
-                        <h3 style="color: var(--gold-primary); margin-bottom: 1rem; font-family: 'Orbitron', sans-serif;">BLOCKS MINED</h3>
-                        <canvas id="blocksChart"></canvas>
-                    </div>
-                    <div style="background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 2rem;">
-                        <h3 style="color: var(--gold-primary); margin-bottom: 1rem; font-family: 'Orbitron', sans-serif;">TRANSACTIONS</h3>
-                        <canvas id="transactionsChart"></canvas>
-                    </div>
-                </div>
-                
-                <!-- Recent Activity -->
-                <div class="activity-section" style="background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 2rem;">
-                    <h3 style="color: var(--gold-primary); margin-bottom: 1.5rem; font-family: 'Orbitron', sans-serif;">🕐 RECENT ACTIVITY</h3>
-                    <div id="recentActivity"></div>
                 </div>
             </section>
             
             <!-- BLOCKCHAIN SECTION -->
             <section class="section" id="blockchain-section">
-                <div class="section-header">
-                    <h1>BLOCKCHAIN</h1>
-                    <div class="section-actions">
-                        <button class="btn btn-secondary" onclick="exportBlockchain()">📥 EXPORT</button>
-                        <button class="btn btn-primary" onclick="loadBlockchain()">🔄 REFRESH</button>
+                <div class="content-area">
+                    <div class="section-header">
+                        <h2>Blockchain Explorer</h2>
+                        <div class="section-actions">
+                            <button class="btn btn-secondary" onclick="exportBlockchain()">Export</button>
+                            <button class="btn btn-primary" onclick="loadBlockchain()">Refresh</button>
+                        </div>
                     </div>
+                    
+                    <div style="margin-bottom: var(--space-6);">
+                        <input type="text" id="blockSearch" placeholder="Search by block number or hash..." style="max-width: 400px;">
+                    </div>
+                    
+                    <div id="blockchainVisualization" class="grid-2"></div>
                 </div>
-                
-                <div id="blockchainVisualization" style="display: flex; flex-direction: column; gap: 1.5rem;"></div>
             </section>
             
             <!-- TRANSACTIONS SECTION -->
             <section class="section" id="transactions-section">
-                <div class="section-header">
-                    <h1>TRANSACTIONS</h1>
-                    <button class="btn btn-primary" onclick="showNewTransactionModal()">+ NEW TRANSACTION</button>
-                </div>
-                
-                <div style="background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 2rem;">
-                    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255, 215, 0, 0.2); padding-bottom: 1rem;">
-                        <button class="tab-btn active" data-tab="pending" style="padding: 0.75rem 1.5rem; background: none; border: none; color: var(--text-secondary); cursor: pointer; font-weight: 600; border-bottom: 2px solid transparent;">PENDING</button>
-                        <button class="tab-btn" data-tab="confirmed" style="padding: 0.75rem 1.5rem; background: none; border: none; color: var(--text-secondary); cursor: pointer; font-weight: 600; border-bottom: 2px solid transparent;">CONFIRMED</button>
-                        <button class="tab-btn" data-tab="all" style="padding: 0.75rem 1.5rem; background: none; border: none; color: var(--text-secondary); cursor: pointer; font-weight: 600; border-bottom: 2px solid transparent;">ALL</button>
+                <div class="content-area">
+                    <div class="section-header">
+                        <h2>Transactions</h2>
+                        <button class="btn btn-primary" onclick="showNewTransactionModal()">+ New Transaction</button>
                     </div>
-                    <div id="transactionsList"></div>
+                    
+                    <div class="tabs">
+                        <button class="tab-btn active" data-tab="all">All</button>
+                        <button class="tab-btn" data-tab="pending">Pending</button>
+                        <button class="tab-btn" data-tab="confirmed">Confirmed</button>
+                    </div>
+                    
+                    <div id="transactionsList">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">↔️</div>
+                            <div class="empty-state-text">No transactions found</div>
+                            <div class="empty-state-hint">Create your first transaction to get started</div>
+                        </div>
+                    </div>
                 </div>
             </section>
             
             <!-- WALLETS SECTION -->
             <section class="section" id="wallets-section">
-                <div class="section-header">
-                    <h1>WALLETS</h1>
-                    <div class="section-actions">
-                        <button class="btn btn-secondary" onclick="importWallet()">📂 IMPORT</button>
-                        <button class="btn btn-primary" onclick="createNewWallet()">+ NEW WALLET</button>
+                <div class="content-area">
+                    <div class="section-header">
+                        <h2>Wallets</h2>
+                        <div class="section-actions">
+                            <button class="btn btn-secondary" onclick="importWallet()">Import</button>
+                            <button class="btn btn-primary" onclick="createNewWallet()">+ New Wallet</button>
+                        </div>
+                    </div>
+                    
+                    <div id="walletsGrid" class="grid-3">
+                        <!-- Wallets will be loaded here -->
                     </div>
                 </div>
-                
-                <div id="walletsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;"></div>
             </section>
             
             <!-- MINING SECTION -->
             <section class="section" id="mining-section">
-                <div class="section-header">
-                    <h1>MINING CENTER</h1>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
-                    <div style="background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 2rem;">
-                        <h3 style="color: var(--gold-primary); margin-bottom: 2rem; font-family: 'Orbitron', sans-serif; text-align: center;">MINING STATUS</h3>
-                        
-                        <div id="miningStatus" style="text-align: center; padding: 3rem; background: rgba(255, 215, 0, 0.05); border: 1px solid var(--gold-primary); border-radius: 12px; margin-bottom: 2rem;">
-                            <div style="font-size: 4rem; margin-bottom: 1rem;">⏸️</div>
-                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--gold-primary);">INACTIVE</div>
-                        </div>
-                        
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem;">
-                            <div style="text-align: center; padding: 1rem; background: rgba(255, 255, 255, 0.03); border-radius: 8px;">
-                                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">BLOCKS MINED</div>
-                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--gold-primary);" id="minedBlocks">0</div>
-                            </div>
-                            <div style="text-align: center; padding: 1rem; background: rgba(255, 255, 255, 0.03); border-radius: 8px;">
-                                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">TOTAL REWARDS</div>
-                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--gold-primary);"><span id="totalRewards">0</span> OLX</div>
-                            </div>
-                            <div style="text-align: center; padding: 1rem; background: rgba(255, 255, 255, 0.03); border-radius: 8px;">
-                                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">LAST TIME</div>
-                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--gold-primary);" id="lastMiningTime">-</div>
-                            </div>
-                        </div>
-                        
-                        <button class="btn btn-primary btn-large" id="mineButton" onclick="startMining()" style="width: 100%; padding: 1.2rem; font-size: 1.2rem;">
-                            ⛏️ START MINING
-                        </button>
+                <div class="content-area">
+                    <div class="section-header">
+                        <h2>Mining Center</h2>
                     </div>
                     
-                    <div style="background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 2rem;">
-                        <h3 style="color: var(--gold-primary); margin-bottom: 1.5rem; font-family: 'Orbitron', sans-serif;">⚙️ CONFIG</h3>
-                        <div style="margin-bottom: 1.5rem;">
-                            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">DIFFICULTY</div>
-                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--gold-primary);" id="currentDifficulty">3</div>
+                    <div class="grid-2">
+                        <div class="mining-control">
+                            <div class="mining-status-icon" id="miningIcon">⏸️</div>
+                            <div class="mining-status-text" id="miningStatusText">Inactive</div>
+                            <p style="color: var(--text-tertiary); margin-bottom: var(--space-4);">Click to start mining new blocks</p>
+                            
+                            <div class="grid-3" style="margin: var(--space-6) 0;">
+                                <div>
+                                    <div class="config-label">Blocks Mined</div>
+                                    <div class="config-value" id="minedBlocks">0</div>
+                                </div>
+                                <div>
+                                    <div class="config-label">Total Rewards</div>
+                                    <div class="config-value" id="totalRewards">0 VRX</div>
+                                </div>
+                                <div>
+                                    <div class="config-label">Last Block</div>
+                                    <div class="config-value" id="lastBlockTime">-</div>
+                                </div>
+                            </div>
+                            
+                            <button class="btn btn-primary mining-btn" onclick="mineBlock()">
+                                ⛏️ Mine New Block
+                            </button>
                         </div>
-                        <div style="margin-bottom: 1.5rem;">
-                            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">REWARD PER BLOCK</div>
-                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--gold-primary);">50 OLX</div>
+                        
+                        <div class="config-panel">
+                            <h3 style="font-size: 0.875rem; font-weight: 700; color: var(--text-primary); margin-bottom: var(--space-4); text-transform: uppercase; letter-spacing: 0.1em;">Configuration</h3>
+                            
+                            <div class="config-item">
+                                <span class="config-label">Difficulty</span>
+                                <span class="config-value" id="currentDifficulty">4</span>
+                            </div>
+                            <div class="config-item">
+                                <span class="config-label">Reward per Block</span>
+                                <span class="config-value">50 VRX</span>
+                            </div>
+                            <div class="config-item">
+                                <span class="config-label">Pending TX</span>
+                                <span class="config-value" id="miningPending">0</span>
+                            </div>
+                            <div class="config-item">
+                                <span class="config-label">Algorithm</span>
+                                <span class="config-value">SHA-256</span>
+                            </div>
+                            <div class="config-item">
+                                <span class="config-label">Node Wallet</span>
+                                <span class="config-value" style="font-size: 0.7rem; font-family: var(--font-mono);" id="nodeWalletAddress">Loading...</span>
+                            </div>
                         </div>
-                        <div>
-                            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">PENDING TX</div>
-                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--gold-primary);" id="miningPending">0</div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- NETWORK SECTION -->
+            <section class="section" id="network-section">
+                <div class="content-area">
+                    <div class="section-header">
+                        <h2>Network</h2>
+                        <div class="section-actions">
+                            <button class="btn btn-secondary" onclick="resolveConflicts()">Sync Chain</button>
+                            <button class="btn btn-primary" onclick="addNode()">+ Add Node</button>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-grid" style="margin-bottom: var(--space-6);">
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Connected Nodes</span>
+                                <div class="stat-icon">🌐</div>
+                            </div>
+                            <div class="stat-value" id="connectedNodes">0</div>
+                            <div class="stat-change">peers in network</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Chain Length</span>
+                                <div class="stat-icon">📊</div>
+                            </div>
+                            <div class="stat-value" id="networkChainLength">0</div>
+                            <div class="stat-change">total blocks</div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Connected Peers</h3>
+                        </div>
+                        <div id="nodesList">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">🌐</div>
+                                <div class="empty-state-text">No nodes connected</div>
+                                <div class="empty-state-hint">Add a node to start syncing</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -249,216 +946,619 @@
             
             <!-- SMART CONTRACTS SECTION -->
             <section class="section" id="contracts-section">
-                <div class="section-header">
-                    <h1>📜 SMART CONTRACTS</h1>
-                </div>
-                
-                <!-- Tabs -->
-                <div class="tabs">
-                    <button class="tab-btn active" data-tab="templates">TEMPLATES</button>
-                    <button class="tab-btn" data-tab="deployed">DEPLOYED</button>
-                    <button class="tab-btn" data-tab="interact">INTERACT</button>
-                </div>
-                
-                <!-- Templates Tab -->
-                <div class="tab-content active" id="templates-tab">
-                    <h2 style="color: var(--gold-primary); margin-bottom: 1.5rem; font-family: 'Orbitron', sans-serif;">Deploy from Template</h2>
-                    <div class="templates-grid">
-                        <div class="template-card" data-template="erc20">
-                            <div class="template-icon">🪙</div>
-                            <h3>ERC-20 Token</h3>
-                            <p>Create your own fungible token</p>
+                <div class="content-area">
+                    <div class="section-header">
+                        <h2>Smart Contracts</h2>
+                        <button class="btn btn-primary" onclick="showDeployModal()">+ Deploy Contract</button>
+                    </div>
+                    
+                    <div class="tabs">
+                        <button class="tab-btn active" data-tab="templates">Templates</button>
+                        <button class="tab-btn" data-tab="deployed">Deployed</button>
+                    </div>
+                    
+                    <div id="templates-tab" class="tab-content" style="display: block;">
+                        <div class="grid-3" id="contractTemplates">
+                            <div class="contract-card">
+                                <div class="contract-name">Token Contract</div>
+                                <p style="font-size: 0.8rem; color: var(--text-tertiary); margin-bottom: var(--space-4);">Create your own ERC-20 like token</p>
+                                <button class="btn btn-secondary" onclick="deployTemplate('token')">Deploy</button>
+                            </div>
+                            <div class="contract-card">
+                                <div class="contract-name">NFT Contract</div>
+                                <p style="font-size: 0.8rem; color: var(--text-tertiary); margin-bottom: var(--space-4);">Create unique digital assets</p>
+                                <button class="btn btn-secondary" onclick="deployTemplate('nft')">Deploy</button>
+                            </div>
+                            <div class="contract-card">
+                                <div class="contract-name">Escrow Contract</div>
+                                <p style="font-size: 0.8rem; color: var(--text-tertiary); margin-bottom: var(--space-4);">Secure transactions with escrow</p>
+                                <button class="btn btn-secondary" onclick="deployTemplate('escrow')">Deploy</button>
+                            </div>
                         </div>
-                        
-                        <div class="template-card" data-template="multisig">
-                            <div class="template-icon">🔐</div>
-                            <h3>MultiSig Wallet</h3>
-                            <p>Multi-signature wallet for security</p>
-                        </div>
-                        
-                        <div class="template-card" data-template="escrow">
-                            <div class="template-icon">🤝</div>
-                            <h3>Escrow Contract</h3>
-                            <p>Secure transactions with guarantee</p>
-                        </div>
-                        
-                        <div class="template-card" data-template="nft">
-                            <div class="template-icon">🎨</div>
-                            <h3>NFT Collection</h3>
-                            <p>Create unique digital assets</p>
-                        </div>
-                        
-                        <div class="template-card" data-template="staking">
-                            <div class="template-icon">💎</div>
-                            <h3>Staking Pool</h3>
-                            <p>Staking with automatic rewards</p>
+                    </div>
+                    
+                    <div id="deployed-tab" class="tab-content" style="display: none;">
+                        <div id="deployedContracts" class="grid-2">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📜</div>
+                                <div class="empty-state-text">No contracts deployed</div>
+                                <div class="empty-state-hint">Deploy your first smart contract</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Deployed Contracts Tab -->
-                <div class="tab-content" id="deployed-tab" style="display: none;">
-                    <h2 style="color: var(--gold-primary); margin-bottom: 1.5rem; font-family: 'Orbitron', sans-serif;">Deployed Contracts</h2>
-                    <div id="contractsList"></div>
-                </div>
-                
-                <!-- Interact Tab -->
-                <div class="tab-content" id="interact-tab" style="display: none;">
-                    <div id="interactionContainer"></div>
+            </section>
+            
+            <!-- PROFILE SECTION -->
+            <section class="section" id="profile-section">
+                <div class="content-area">
+                    <div class="section-header">
+                        <h2>My Profile</h2>
+                        <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
+                    </div>
+                    
+                    <div class="profile-header">
+                        <div class="profile-avatar" id="profileAvatar">👤</div>
+                        <div class="profile-info">
+                            <h2 id="profileDisplayName">Loading...</h2>
+                            <div class="username">@<span id="profileUsername">username</span></div>
+                            <div class="bio" id="profileBio">No bio yet</div>
+                            <div class="profile-badges">
+                                <span class="badge badge-success" id="profileAdminBadge" style="display: none;">ADMIN</span>
+                                <span class="badge badge-info">MEMBER</span>
+                            </div>
+                        </div>
+                        <div class="profile-stats">
+                            <div class="profile-stat">
+                                <div class="profile-stat-value" id="profileLoginCount">0</div>
+                                <div class="profile-stat-label">Logins</div>
+                            </div>
+                            <div class="profile-stat">
+                                <div class="profile-stat-value" id="profileMemberDays">0</div>
+                                <div class="profile-stat-label">Days</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid-2">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Personal Information</h3>
+                            </div>
+                            <form id="profileForm">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="editDisplayName">Display Name</label>
+                                        <input type="text" id="editDisplayName" placeholder="Your display name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="editEmail">Email</label>
+                                        <input type="email" id="editEmail" placeholder="your@email.com">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="editBio">Bio</label>
+                                    <textarea id="editBio" rows="3" placeholder="Tell us about yourself..." style="resize: vertical;"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="editAvatarUrl">Avatar URL</label>
+                                    <input type="url" id="editAvatarUrl" placeholder="https://example.com/avatar.jpg">
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Wallet & Security</h3>
+                            </div>
+                            <div class="form-group">
+                                <label for="editWalletAddress">Linked Wallet Address</label>
+                                <input type="text" id="editWalletAddress" placeholder="0x..." style="font-family: var(--font-mono);">
+                            </div>
+                            
+                            <div style="margin-top: var(--space-6); padding-top: var(--space-6); border-top: 1px solid var(--border-light);">
+                                <h4 style="font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-4);">Change Password</h4>
+                                <div class="form-group">
+                                    <label for="currentPassword">Current Password</label>
+                                    <input type="password" id="currentPassword" placeholder="••••••••">
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="newPassword">New Password</label>
+                                        <input type="password" id="newPassword" placeholder="••••••••">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="confirmNewPassword">Confirm Password</label>
+                                        <input type="password" id="confirmNewPassword" placeholder="••••••••">
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-secondary" onclick="changePassword()">Update Password</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Account Activity</h3>
+                        </div>
+                        <div class="grid-4">
+                            <div style="text-align: center; padding: var(--space-4);">
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary);" id="activityLastLogin">-</div>
+                                <div style="font-size: 0.7rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.1em;">Last Login</div>
+                            </div>
+                            <div style="text-align: center; padding: var(--space-4);">
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary);" id="activityMemberSince">-</div>
+                                <div style="font-size: 0.7rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.1em;">Member Since</div>
+                            </div>
+                            <div style="text-align: center; padding: var(--space-4);">
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary);" id="activityTotalLogins">0</div>
+                                <div style="font-size: 0.7rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.1em;">Total Logins</div>
+                            </div>
+                            <div style="text-align: center; padding: var(--space-4);">
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--success);">Active</div>
+                                <div style="font-size: 0.7rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.1em;">Status</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
             
-            <!-- Other sections similar structure... -->
-            <section class="section" id="network-section">
-                <div class="section-header">
-                    <h1>NETWORK</h1>
-                    <button class="btn btn-primary" onclick="showAddNodeModal()">+ ADD NODE</button>
-                </div>
-                <div id="nodesList"></div>
-            </section>
-            
-            <section class="section" id="explorer-section">
-                <div class="section-header">
-                    <h1>EXPLORER</h1>
-                </div>
-                <div id="explorerResults"></div>
-            </section>
-            
+            <!-- SETTINGS SECTION -->
             <section class="section" id="settings-section">
-                <div class="section-header">
-                    <h1>SETTINGS</h1>
+                <div class="content-area">
+                    <div class="section-header">
+                        <h2>Settings</h2>
+                        <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+                    </div>
+                    
+                    <div class="grid-2">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Preferences</h3>
+                            </div>
+                            
+                            <div class="settings-row">
+                                <div class="settings-info">
+                                    <h4>Dark Theme</h4>
+                                    <p>Use dark mode for the dashboard</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="settingTheme" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="settings-row">
+                                <div class="settings-info">
+                                    <h4>Notifications</h4>
+                                    <p>Receive alerts for transactions and mining</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="settingNotifications" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="settings-row">
+                                <div class="settings-info">
+                                    <h4>Language</h4>
+                                    <p>Select your preferred language</p>
+                                </div>
+                                <select id="settingLanguage" style="width: 150px;">
+                                    <option value="es">Español</option>
+                                    <option value="en">English</option>
+                                    <option value="pt">Português</option>
+                                </select>
+                            </div>
+                            
+                            <div class="settings-row">
+                                <div class="settings-info">
+                                    <h4>Currency</h4>
+                                    <p>Display currency for values</p>
+                                </div>
+                                <select id="settingCurrency" style="width: 150px;">
+                                    <option value="USD">USD ($)</option>
+                                    <option value="EUR">EUR (€)</option>
+                                    <option value="COP">COP ($)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="settings-row">
+                                <div class="settings-info">
+                                    <h4>Timezone</h4>
+                                    <p>Your local timezone</p>
+                                </div>
+                                <select id="settingTimezone" style="width: 200px;">
+                                    <option value="America/Bogota">America/Bogota</option>
+                                    <option value="America/New_York">America/New_York</option>
+                                    <option value="America/Los_Angeles">America/Los_Angeles</option>
+                                    <option value="Europe/London">Europe/London</option>
+                                    <option value="Europe/Madrid">Europe/Madrid</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Blockchain Settings</h3>
+                            </div>
+                            
+                            <div class="settings-row">
+                                <div class="settings-info">
+                                    <h4>Auto-refresh Dashboard</h4>
+                                    <p>Automatically update blockchain data</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="settingAutoRefresh" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="settings-row">
+                                <div class="settings-info">
+                                    <h4>Show Transaction Details</h4>
+                                    <p>Display full transaction hashes</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="settingShowTxDetails">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="settings-row">
+                                <div class="settings-info">
+                                    <h4>Mining Notifications</h4>
+                                    <p>Alert when a block is mined</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="settingMiningNotif" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div style="margin-top: var(--space-6); padding-top: var(--space-6); border-top: 1px solid var(--border-light);">
+                                <h4 style="font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-4);">Danger Zone</h4>
+                                <p style="font-size: 0.8rem; color: var(--text-tertiary); margin-bottom: var(--space-4);">These actions are irreversible. Please be careful.</p>
+                                <div style="display: flex; gap: var(--space-3);">
+                                    <button class="btn btn-danger" onclick="exportUserData()">Export My Data</button>
+                                    <button class="btn btn-danger" onclick="confirmDeleteAccount()">Delete Account</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div id="settingsContainer"></div>
             </section>
         </main>
     </div>
     
-    <!-- Modal -->
-    <div id="modalOverlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 2000; align-items: center; justify-content: center;">
-        <div id="transactionModal" style="background: rgba(18, 18, 26, 0.95); backdrop-filter: blur(20px); border: 2px solid var(--gold-primary); border-radius: 20px; width: 90%; max-width: 500px; box-shadow: 0 20px 60px rgba(255, 215, 0, 0.3);">
-            <div style="padding: 1.5rem; border-bottom: 1px solid var(--gold-primary); display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="color: var(--gold-primary); font-family: 'Orbitron', sans-serif;">NEW TRANSACTION</h2>
-                <button onclick="closeModal()" style="background: none; border: none; font-size: 2rem; color: var(--gold-primary); cursor: pointer;">&times;</button>
+    <!-- Transaction Modal -->
+    <div id="modalOverlay" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-icon">💸</div>
+                <div class="modal-title-section">
+                    <h2>New Transaction</h2>
+                    <p>Send tokens to another address</p>
+                </div>
             </div>
-            <div style="padding: 1.5rem;">
+            <div class="modal-body">
                 <form id="newTransactionForm">
-                    <div style="margin-bottom: 1.5rem;">
-                        <label style="display: block; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600;">SENDER</label>
-                        <input type="text" id="txSender" required style="width: 100%; padding: 0.75rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 8px; color: var(--text-primary);">
+                    <div style="margin-bottom: var(--space-4);">
+                        <label for="txSender">Sender Address</label>
+                        <input type="text" id="txSender" placeholder="Your wallet address" required>
                     </div>
-                    <div style="margin-bottom: 1.5rem;">
-                        <label style="display: block; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600;">RECIPIENT</label>
-                        <input type="text" id="txRecipient" required style="width: 100%; padding: 0.75rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 8px; color: var(--text-primary);">
+                    <div style="margin-bottom: var(--space-4);">
+                        <label for="txRecipient">Recipient Address</label>
+                        <input type="text" id="txRecipient" placeholder="Recipient wallet address" required>
                     </div>
-                    <div style="margin-bottom: 1.5rem;">
-                        <label style="display: block; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600;">AMOUNT (OLX)</label>
-                        <input type="number" id="txAmount" step="0.01" min="0.01" required style="width: 100%; padding: 0.75rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 8px; color: var(--text-primary);">
+                    <div style="margin-bottom: var(--space-4);">
+                        <label for="txAmount">Amount (VRX)</label>
+                        <input type="number" id="txAmount" step="0.01" min="0.01" placeholder="0.00" required>
                     </div>
-                    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                        <button type="button" class="btn btn-secondary" onclick="closeModal()">CANCEL</button>
-                        <button type="submit" class="btn btn-primary">SEND</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Deploy Contract Modal -->
-    <div id="deployModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div id="modalIcon" class="modal-icon">📜</div>
-                <div class="modal-title-section">
-                    <h2 id="modalTitle">Deploy Contract</h2>
-                    <p id="modalDescription">Fill in the parameters to deploy your contract</p>
-                </div>
-            </div>
-            <div class="modal-body">
-                <form id="deployContractForm">
-                    <div id="contractParams"></div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" onclick="smartContractsUI.closeModal('deployModal')">Cancel</button>
-                        <button type="submit" class="btn btn-primary">🚀 Deploy Contract</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Send Transaction</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-    
-    <!-- Function Call Modal -->
-    <div id="functionCallModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-icon">⚡</div>
-                <div class="modal-title-section">
-                    <h2 id="functionModalTitle">Call Function</h2>
-                    <p id="functionModalContract">Contract: 0x...</p>
-                </div>
-            </div>
-            <div class="modal-body">
-                <form id="functionCallForm">
-                    <div id="functionParams"></div>
-                    <div id="functionResult"></div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" onclick="smartContractsUI.closeModal('functionCallModal')">Close</button>
-                        <button type="button" id="callFunctionBtn" class="btn btn-primary">⚡ Execute</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Contract Details Modal -->
-    <div id="contractDetailsModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-icon">📋</div>
-                <div class="modal-title-section">
-                    <h2>Contract Details</h2>
-                </div>
-            </div>
-            <div class="modal-body">
-                <div id="detailsContent"></div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" onclick="smartContractsUI.closeModal('contractDetailsModal')">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <script src="/static/js/particles.js"></script>
-    <script src="/static/js/animations.js"></script>
-    <script src="/static/js/smart-contracts.js"></script>
+
+    <script src="/static/js/api-client.js"></script>
     <script src="/static/js/dashboard.js"></script>
     
     <script>
-        // Tab switching
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const tab = btn.dataset.tab;
+        // Navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const section = item.dataset.section;
                 
-                // Update buttons
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
+                // Update nav
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                item.classList.add('active');
                 
-                // Update content
-                document.querySelectorAll('.tab-content').forEach(content => {
-                    content.style.display = 'none';
-                });
-                document.getElementById(`${tab}-tab`).style.display = 'block';
-                
-                // Load contracts when switching to deployed tab
-                if (tab === 'deployed' && smartContractsUI) {
-                    smartContractsUI.loadContracts();
+                // Update sections
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                const targetSection = document.getElementById(`${section}-section`);
+                if (targetSection) {
+                    setTimeout(() => targetSection.classList.add('active'), 50);
                 }
+                
+                // Update title
+                const titles = {
+                    'overview': 'Dashboard Overview',
+                    'blockchain': 'Blockchain Explorer',
+                    'transactions': 'Transactions',
+                    'wallets': 'Wallets',
+                    'mining': 'Mining Center',
+                    'network': 'Network',
+                    'contracts': 'Smart Contracts',
+                    'profile': 'My Profile',
+                    'settings': 'Settings'
+                };
+                document.getElementById('pageTitle').textContent = titles[section] || 'Dashboard';
+                
+                // Load section data
+                loadSectionData(section);
             });
         });
         
-        // Close modals on outside click
-        window.addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal')) {
-                e.target.style.display = 'none';
+        // Navigate to section programmatically
+        function navigateToSection(section) {
+            const navItem = document.querySelector(`[data-section="${section}"]`);
+            if (navItem) navItem.click();
+            document.getElementById('userDropdown').classList.remove('active');
+        }
+        
+        // User menu toggle
+        function toggleUserMenu() {
+            document.getElementById('userDropdown').classList.toggle('active');
+        }
+        
+        // Close user menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.user-menu')) {
+                document.getElementById('userDropdown').classList.remove('active');
             }
+        });
+        
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const parent = btn.closest('.content-area');
+                parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const tab = btn.dataset.tab;
+                parent.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+                const tabContent = parent.querySelector(`#${tab}-tab`);
+                if (tabContent) tabContent.style.display = 'block';
+            });
+        });
+        
+        // Modal functions
+        function showNewTransactionModal() {
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+        
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+        
+        // Close modal on outside click
+        document.getElementById('modalOverlay').addEventListener('click', (e) => {
+            if (e.target.id === 'modalOverlay') closeModal();
+        });
+        
+        // Refresh all data
+        function refreshAll() {
+            if (typeof initializeApp === 'function') initializeApp();
+            showNotification('Dashboard updated', 'success');
+        }
+        
+        // ==================== PROFILE FUNCTIONS ====================
+        
+        let userProfile = null;
+        
+        async function loadUserProfile() {
+            try {
+                const response = await fetch('/api/user/profile');
+                const data = await response.json();
+                
+                if (data.success) {
+                    userProfile = data.profile;
+                    updateProfileUI(userProfile);
+                    updateUserMenu(userProfile);
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+        
+        function updateProfileUI(profile) {
+            // Header info
+            document.getElementById('profileDisplayName').textContent = profile.display_name || profile.username;
+            document.getElementById('profileUsername').textContent = profile.username;
+            document.getElementById('profileBio').textContent = profile.bio || 'No bio yet';
+            document.getElementById('profileLoginCount').textContent = profile.login_count || 0;
+            
+            // Calculate member days
+            if (profile.created_at) {
+                const created = new Date(profile.created_at);
+                const now = new Date();
+                const days = Math.floor((now - created) / (1000 * 60 * 60 * 24));
+                document.getElementById('profileMemberDays').textContent = days;
+            }
+            
+            // Admin badge
+            if (profile.is_admin) {
+                document.getElementById('profileAdminBadge').style.display = 'inline-flex';
+            }
+            
+            // Form fields
+            document.getElementById('editDisplayName').value = profile.display_name || '';
+            document.getElementById('editEmail').value = profile.email || '';
+            document.getElementById('editBio').value = profile.bio || '';
+            document.getElementById('editAvatarUrl').value = profile.avatar_url || '';
+            document.getElementById('editWalletAddress').value = profile.wallet_address || '';
+            
+            // Activity
+            if (profile.last_login) {
+                const lastLogin = new Date(profile.last_login);
+                document.getElementById('activityLastLogin').textContent = lastLogin.toLocaleDateString();
+            }
+            if (profile.created_at) {
+                const memberSince = new Date(profile.created_at);
+                document.getElementById('activityMemberSince').textContent = memberSince.toLocaleDateString();
+            }
+            document.getElementById('activityTotalLogins').textContent = profile.login_count || 0;
+            
+            // Settings
+            if (profile.settings) {
+                document.getElementById('settingNotifications').checked = profile.settings.notifications_enabled !== false;
+                document.getElementById('settingLanguage').value = profile.settings.language || 'es';
+                document.getElementById('settingCurrency').value = profile.settings.currency || 'USD';
+                document.getElementById('settingTimezone').value = profile.settings.timezone || 'America/Bogota';
+            }
+        }
+        
+        function updateUserMenu(profile) {
+            document.getElementById('userMenuName').textContent = profile.display_name || profile.username;
+            if (profile.avatar_url) {
+                document.getElementById('userMenuAvatar').innerHTML = `<img src="${profile.avatar_url}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+                document.getElementById('profileAvatar').innerHTML = `<img src="${profile.avatar_url}" alt="Avatar">`;
+            }
+        }
+        
+        async function saveProfile() {
+            const profileData = {
+                display_name: document.getElementById('editDisplayName').value,
+                email: document.getElementById('editEmail').value,
+                bio: document.getElementById('editBio').value,
+                avatar_url: document.getElementById('editAvatarUrl').value,
+                wallet_address: document.getElementById('editWalletAddress').value
+            };
+            
+            try {
+                const response = await fetch('/api/user/profile', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(profileData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Profile updated successfully', 'success');
+                    loadUserProfile();
+                } else {
+                    showNotification(data.error || 'Error updating profile', 'error');
+                }
+            } catch (error) {
+                showNotification('Error updating profile', 'error');
+            }
+        }
+        
+        async function changePassword() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmNewPassword').value;
+            
+            if (!currentPassword || !newPassword) {
+                showNotification('Please fill in all password fields', 'error');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                showNotification('New passwords do not match', 'error');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                showNotification('Password must be at least 6 characters', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/user/password', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ current_password: currentPassword, new_password: newPassword })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Password changed successfully', 'success');
+                    document.getElementById('currentPassword').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmNewPassword').value = '';
+                } else {
+                    showNotification(data.error || 'Error changing password', 'error');
+                }
+            } catch (error) {
+                showNotification('Error changing password', 'error');
+            }
+        }
+        
+        async function saveSettings() {
+            const settings = {
+                notifications_enabled: document.getElementById('settingNotifications').checked,
+                theme: document.getElementById('settingTheme').checked ? 'dark' : 'light',
+                language: document.getElementById('settingLanguage').value,
+                currency: document.getElementById('settingCurrency').value,
+                timezone: document.getElementById('settingTimezone').value
+            };
+            
+            try {
+                const response = await fetch('/api/user/settings', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settings)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Settings saved successfully', 'success');
+                } else {
+                    showNotification(data.error || 'Error saving settings', 'error');
+                }
+            } catch (error) {
+                showNotification('Error saving settings', 'error');
+            }
+        }
+        
+        function exportUserData() {
+            if (userProfile) {
+                const dataStr = JSON.stringify(userProfile, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `oriluxchain-profile-${userProfile.username}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showNotification('Profile data exported', 'success');
+            }
+        }
+        
+        function confirmDeleteAccount() {
+            if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                showNotification('Account deletion is not available yet', 'warning');
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Trigger initial section load
+            setTimeout(() => {
+                document.querySelector('.section').classList.add('active');
+            }, 100);
+            
+            // Load user profile
+            loadUserProfile();
         });
     </script>
 </body>

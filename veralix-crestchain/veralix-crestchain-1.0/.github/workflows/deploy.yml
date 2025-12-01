@@ -1,0 +1,97 @@
+name: Deploy to Portainer
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint code
+        run: npm run lint || true
+        continue-on-error: true
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Build application
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+        run: npm run build
+
+      - name: Run build size check
+        run: |
+          echo "Build size:"
+          du -sh dist
+          echo "Detailed breakdown:"
+          du -h dist/* | sort -rh | head -20
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+      - name: Deploy to Portainer Stack
+        uses: carlrygart/portainer-stack-deploy@v1
+        with:
+          portainer-url: ${{ secrets.PORTAINER_URL }}
+          username: ${{ secrets.PORTAINER_USERNAME }}
+          password: ${{ secrets.PORTAINER_PASSWORD }}
+          stack-name: ${{ secrets.STACK_NAME }}
+          stack-definition: docker-compose.yml
+          template-variables: |
+            {
+              "VITE_SUPABASE_URL": "${{ secrets.VITE_SUPABASE_URL }}",
+              "VITE_SUPABASE_PUBLISHABLE_KEY": "${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}",
+              "VITE_SUPABASE_PROJECT_ID": "${{ secrets.VITE_SUPABASE_PROJECT_ID }}"
+            }
+
+      - name: Wait for deployment
+        run: sleep 30
+
+      - name: Health check
+        run: |
+          for i in {1..10}; do
+            if curl -f -s -o /dev/null -w "%{http_code}" https://oriluxtech.com/health | grep -q "200"; then
+              echo "✅ Deployment successful! Site is healthy."
+              exit 0
+            fi
+            echo "⏳ Waiting for site to be ready... (attempt $i/10)"
+            sleep 10
+          done
+          echo "❌ Health check failed after 10 attempts"
+          exit 1
+
+      - name: Notify on success
+        if: success()
+        run: |
+          echo "🎉 Deployment successful!"
+          echo "✅ Build completed"
+          echo "✅ Deployed to Portainer"
+          echo "✅ Health check passed"
+          echo "🌐 Site: https://oriluxtech.com"
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Deployment failed!"
+          echo "Check the logs above for details"
