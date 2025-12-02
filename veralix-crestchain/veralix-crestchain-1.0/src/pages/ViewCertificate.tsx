@@ -23,6 +23,7 @@ import {
   CheckCircle,
   Calendar,
   Package,
+  ExternalLink,
   Clock
 } from "lucide-react";
 
@@ -64,7 +65,7 @@ const ViewCertificate = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { downloadPDF, isDownloading } = useCertificatePDFDownload();
+  const { downloadPDF, openInIPFS, isDownloading } = useCertificatePDFDownload();
   const [certificate, setCertificate] = useState<CertificateData | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string>("");
   const [socialImageUrl, setSocialImageUrl] = useState<string>("");
@@ -482,6 +483,19 @@ const ViewCertificate = () => {
                   El certificado PDF aún no está disponible
                 </p>
               )}
+              
+              {/* Botón para ver directamente en IPFS */}
+              {certificate.certificate_pdf_url && (
+                <Button
+                  className="w-full"
+                  variant="outline"
+                  onClick={() => openInIPFS(certificate.certificate_pdf_url!)}
+                >
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  Ver en IPFS
+                </Button>
+              )}
+              
               <Button
                 className="w-full"
                 variant="outline"

@@ -38,13 +38,15 @@ export const useCertificatePDFDownload = () => {
         // Solo intentar IPFS si hay URL y el caché falló
         console.log('⏳ No en caché, intentando gateways IPFS...');
         
-        // Lista de gateways para intentar (ipfs.io primero porque permite HTML)
+        // Lista de gateways para intentar (ordenados por confiabilidad)
         const gateways = [
           'https://ipfs.io/ipfs/',
           'https://cloudflare-ipfs.com/ipfs/',
           'https://dweb.link/ipfs/',
           'https://w3s.link/ipfs/',
-          'https://gateway.pinata.cloud/ipfs/'  // Pinata al final porque bloquea HTML
+          'https://nftstorage.link/ipfs/',
+          'https://4everland.io/ipfs/'
+          // Pinata removido porque tiene rate limiting agresivo
         ];
         
         const ipfsHash = certificateHtmlUrl.replace('ipfs://', '').replace(/https?:\/\/[^/]+\/ipfs\//, '');
@@ -180,13 +182,26 @@ export const useCertificatePDFDownload = () => {
       console.error('Error generating PDF:', error);
       toast({
         title: "Error al generar PDF",
-        description: "No se pudo generar el certificado. Por favor, intenta de nuevo.",
+        description: "No se pudo generar el certificado. Abriendo en nueva pestaña...",
         variant: "destructive",
       });
+      
+      // Fallback: abrir directamente en IPFS si la generación falla
+      if (certificateHtmlUrl) {
+        const ipfsHash = certificateHtmlUrl.replace('ipfs://', '').replace(/https?:\/\/[^/]+\/ipfs\//, '');
+        window.open(`https://ipfs.io/ipfs/${ipfsHash}`, '_blank');
+      }
     } finally {
       setIsDownloading(false);
     }
   };
 
-  return { downloadPDF, isDownloading };
+  // Función para abrir directamente en IPFS (sin generar PDF)
+  const openInIPFS = (certificateHtmlUrl: string) => {
+    if (!certificateHtmlUrl) return;
+    const ipfsHash = certificateHtmlUrl.replace('ipfs://', '').replace(/https?:\/\/[^/]+\/ipfs\//, '');
+    window.open(`https://ipfs.io/ipfs/${ipfsHash}`, '_blank');
+  };
+
+  return { downloadPDF, openInIPFS, isDownloading };
 };
