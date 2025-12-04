@@ -7,9 +7,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const RPC_URL = Deno.env.get("CRESTCHAIN_RPC_URL") || "http://127.0.0.1:8545";
-const CONTRACT_ADDRESS = Deno.env.get("VERALIX_CONTRACT_ADDRESS") || "0x0000000000000000000000000000000000000000";
+// BSC Mainnet Configuration
+const BSC_RPC_URLS = [
+  'https://bsc-dataseed.binance.org',
+  'https://bsc-dataseed1.binance.org',
+  'https://bsc-dataseed2.binance.org'
+];
+const RPC_URL = Deno.env.get("BSC_RPC_URL") || BSC_RPC_URLS[0];
+const CONTRACT_ADDRESS = Deno.env.get("VERALIX_CONTRACT_ADDRESS") || "0x5aDcEEf785FD21b65986328ca1e6DE0C973eC423";
 const SYSTEM_PRIVATE_KEY = Deno.env.get("SYSTEM_PRIVATE_KEY");
+const TCT_CONTRACT = "0x2D8931C368fE34D3d039Ab454aFc131342A339B5";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -140,7 +147,7 @@ async function mintSingle(req: MintRequestBody) {
       transaction_hash: tx.hash,
       token_id: tokenId ? String(tokenId) : null,
       contract_address: CONTRACT_ADDRESS,
-      blockchain_network: RPC_URL.includes('127.0.0.1') ? 'HARDHAT_LOCAL' : 'CRESTCHAIN',
+      blockchain_network: 'BSC_MAINNET',
       is_verified: false,
     })
     .select("id")

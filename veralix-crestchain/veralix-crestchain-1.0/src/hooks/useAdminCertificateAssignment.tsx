@@ -179,11 +179,237 @@ export function useAdminCertificateAssignment() {
     }
   };
 
+  const reduceCertificates = async (targetUserId: string, targetEmail: string, certificatesCount: number, reason: string) => {
+    setLoading(true);
+    try {
+      console.log('Reducing certificates for:', { targetUserId, targetEmail, certificatesCount });
+      
+      // Obtener el perfil del usuario
+      let userId = targetUserId;
+      if (!userId && targetEmail) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('user_id')
+          .eq('email', targetEmail)
+          .single();
+        
+        if (profile) {
+          userId = profile.user_id;
+        }
+      }
+
+      if (!userId) {
+        throw new Error('Usuario no encontrado');
+      }
+
+      // Obtener los paquetes de certificados del usuario con balance disponible
+      const { data: purchases, error: purchaseError } = await supabase
+        .from('certificate_purchases')
+        .select('id, certificates_remaining, certificates_used')
+        .eq('user_id', userId)
+        .eq('payment_status', 'completed')
+        .gt('certificates_remaining', 0)
+        .order('purchased_at', { ascending: true });
+
+      if (purchaseError) {
+        console.error('Error fetching purchases:', purchaseError);
+      }
+
+      // También obtener asignaciones manuales para calcular balance total
+      const { data: manualAssignments, error: assignError } = await (supabase as any)
+        .from('admin_certificate_assignments')
+        .select('certificates_count')
+        .eq('target_user_id', userId);
+
+      if (assignError) {
+        console.error('Error fetching manual assignments:', assignError);
+      }
+
+      // Calcular balance de purchases
+      const purchaseBalance = purchases?.reduce((sum, p) => sum + (p.certificates_remaining || 0), 0) || 0;
+      
+      // Calcular balance de asignaciones manuales
+      const manualBalance = manualAssignments?.reduce((sum: number, a: any) => sum + (a.certificates_count || 0), 0) || 0;
+      
+      // Balance total
+      const totalBalance = purchaseBalance + manualBalance;
+      console.log('Current balance:', { totalBalance, purchaseBalance, manualBalance, purchases, manualAssignments });
+
+      if (totalBalance < certificatesCount) {
+        throw new Error(`El usuario solo tiene ${totalBalance} certificados disponibles`);
+      }
+
+      // Primero reducir de los paquetes de compra (FIFO)
+      let remaining = certificatesCount;
+      for (const purchase of purchases || []) {
+        if (remaining <= 0) break;
+        
+        const toReduce = Math.min(remaining, purchase.certificates_remaining || 0);
+        const newRemaining = (purchase.certificates_remaining || 0) - toReduce;
+        const newUsed = (purchase.certificates_used || 0) + toReduce;
+        
+        const { error: updateError } = await supabase
+          .from('certificate_purchases')
+          .update({ 
+            certificates_remaining: newRemaining,
+            certificates_used: newUsed
+          })
+          .eq('id', purchase.id);
+
+        if (updateError) {
+          console.error('Error updating purchase:', updateError);
+          throw updateError;
+        }
+        
+        remaining -= toReduce;
+      }
+
+      // Si aún quedan certificados por reducir, se registra como reducción manual
+      // (el registro en admin_certificate_assignments con valor negativo ya se hace abajo)
+
+      const newBalance = totalBalance - certificatesCount;
+
+      // Registrar la reducción en admin_certificate_assignments con cantidad negativa
+      const { data: { user: adminUser } } = await supabase.auth.getUser();
+      const { data: adminProfile } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('user_id', adminUser?.id)
+        .single();
+
+      const { error: logError } = await (supabase as any)
+        .from('admin_certificate_assignments')
+        .insert({
+          target_user_id: userId,
+          target_user_email: targetEmail,
+          assigned_by_admin_id: adminUser?.id,
+          assigned_by_admin_email: adminProfile?.email || 'admin',
+          package_name: 'Reducción de certificados',
+          certificates_count: -certificatesCount,
+          payment_type: 'compensation',
+          amount_paid: 0,
+          currency: 'COP',
+          notes: reason,
+          is_income: false
+        });
+
+      if (logError) {
+        console.error('Error logging reduction:', logError);
+      }
+
+      toast({
+        title: "Certificados reducidos",
+        description: `Se quitaron ${certificatesCount} certificados a ${targetEmail}. Nuevo balance: ${newBalance}`,
+      });
+
+      await fetchAssignments();
+      return { success: true, newBalance };
+    } catch (error: any) {
+      console.error('Error reducing certificates:', error);
+      toast({
+        title: "Error",
+        description: error.message || 'No se pudieron reducir los certificados',
+        variant: "destructive",
+      });
+      return { success: false, error: error.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Obtener balance de certificados de un usuario
+  const getUserCertificateBalance = async (email: string, detailed: boolean = false) => {
+    try {
+      // Primero obtener el perfil del usuario
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, business_name')
+        .eq('email', email)
+        .single();
+
+      if (profileError || !profile) {
+        return { success: false, balance: 0, error: 'Usuario no encontrado' };
+      }
+
+      // Obtener balance de certificate_purchases
+      const { data: purchases, error: purchaseError } = await supabase
+        .from('certificate_purchases')
+        .select('id, package_name, certificates_purchased, certificates_remaining, certificates_used, purchased_at, amount_paid, currency, payment_status')
+        .eq('user_id', profile.user_id)
+        .order('purchased_at', { ascending: false });
+
+      if (purchaseError) {
+        console.error('Error fetching purchases:', purchaseError);
+      }
+
+      // También obtener asignaciones manuales de admin_certificate_assignments
+      const { data: manualAssignments, error: assignError } = await (supabase as any)
+        .from('admin_certificate_assignments')
+        .select('id, package_name, certificates_count, created_at, payment_type, amount_paid, currency')
+        .eq('target_user_id', profile.user_id)
+        .order('created_at', { ascending: false });
+
+      if (assignError) {
+        console.error('Error fetching manual assignments:', assignError);
+      }
+
+      // Calcular balance de purchases
+      const completedPurchases = purchases?.filter(p => p.payment_status === 'completed') || [];
+      const purchaseBalance = completedPurchases.reduce((sum, p) => sum + (p.certificates_remaining || 0), 0);
+      
+      // Calcular balance de asignaciones manuales (sumar positivos, restar negativos)
+      const manualBalance = manualAssignments?.reduce((sum: number, a: any) => sum + (a.certificates_count || 0), 0) || 0;
+      
+      // Balance total
+      const totalBalance = purchaseBalance + manualBalance;
+      const totalPurchased = completedPurchases.reduce((sum, p) => sum + (p.certificates_purchased || 0), 0);
+      const totalUsed = completedPurchases.reduce((sum, p) => sum + (p.certificates_used || 0), 0);
+
+      // Combinar historial para vista detallada
+      const combinedHistory = detailed ? [
+        ...(purchases || []).map(p => ({
+          ...p,
+          type: 'purchase',
+          date: p.purchased_at
+        })),
+        ...(manualAssignments || []).map((a: any) => ({
+          id: a.id,
+          package_name: a.package_name,
+          certificates_purchased: a.certificates_count,
+          certificates_remaining: a.certificates_count,
+          certificates_used: 0,
+          purchased_at: a.created_at,
+          amount_paid: a.amount_paid,
+          currency: a.currency,
+          payment_status: a.certificates_count > 0 ? 'assigned' : 'reduced',
+          type: 'manual'
+        }))
+      ].sort((a, b) => new Date(b.date || b.purchased_at).getTime() - new Date(a.date || a.purchased_at).getTime()) : undefined;
+
+      return { 
+        success: true, 
+        balance: totalBalance,
+        totalPurchased: totalPurchased + (manualAssignments?.filter((a: any) => a.certificates_count > 0).reduce((sum: number, a: any) => sum + a.certificates_count, 0) || 0),
+        totalUsed,
+        manualBalance,
+        purchaseBalance,
+        name: profile?.full_name || profile?.business_name || email,
+        email: email,
+        purchases: combinedHistory
+      };
+    } catch (error: any) {
+      console.error('Error getting user balance:', error);
+      return { success: false, balance: 0, error: error.message };
+    }
+  };
+
   return {
     loading,
     assignments,
     incomeSummary,
     assignCertificates,
+    reduceCertificates,
+    getUserCertificateBalance,
     fetchAssignments,
     fetchIncomeSummary,
     searchUsers

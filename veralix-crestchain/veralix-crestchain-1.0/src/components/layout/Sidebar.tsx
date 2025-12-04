@@ -30,7 +30,11 @@ import {
   Shield,
   Store,
   Bell,
-  Sparkles
+  Sparkles,
+  Code,
+  Mail,
+  Activity,
+  FileText
 } from "lucide-react";
 import { VeralixLogo } from "@/components/ui/veralix-logo";
 
@@ -57,24 +61,27 @@ const joyeroNavigation: NavSection[] = [
   {
     title: "Gestión",
     items: [
-      { title: "Mis Joyas", href: "/dashboard/joyas", icon: Gem },
-      { title: "Nueva Joya", href: "/new-jewelry", icon: Sparkles },
-      { title: "Certificados", href: "/dashboard/certificados", icon: FileCheck },
+      { title: "Mis Joyas", href: "/certificados", icon: Gem },
+      { title: "Nueva Joya", href: "/nueva-joya", icon: Sparkles },
+      { title: "Gestión Masiva", href: "/gestion-certificados", icon: FileCheck },
+      { title: "Mis Paquetes", href: "/certificate-bundles/manage", icon: Package },
     ]
   },
   {
     title: "Ventas",
     items: [
-      { title: "Marketplace", href: "/dashboard/marketplace", icon: Store },
-      { title: "Pedidos", href: "/dashboard/pedidos", icon: Package },
+      { title: "Marketplace", href: "/mi-marketplace", icon: Store },
+      { title: "Crear Listado", href: "/crear-listado", icon: ShoppingBag },
       { title: "Analytics", href: "/analytics", icon: BarChart3 },
     ]
   },
   {
     title: "Cuenta",
     items: [
+      { title: "Mi Perfil", href: "/perfil", icon: Users },
+      { title: "Notificaciones", href: "/notifications", icon: Bell },
       { title: "Tokens VRX", href: "/airdrop", icon: Coins },
-      { title: "Configuración", href: "/dashboard/settings", icon: Settings },
+      { title: "Configuración", href: "/settings", icon: Settings },
       { title: "Ayuda", href: "/help", icon: HelpCircle },
     ]
   }
@@ -97,15 +104,16 @@ const clienteNavigation: NavSection[] = [
   {
     title: "Mis Compras",
     items: [
-      { title: "Mis Certificados", href: "/certificates", icon: FileCheck },
-      { title: "Mis Pedidos", href: "/dashboard/pedidos", icon: Package },
+      { title: "Mis Certificados", href: "/certificados", icon: FileCheck },
     ]
   },
   {
     title: "Cuenta",
     items: [
+      { title: "Mi Perfil", href: "/perfil", icon: Users },
+      { title: "Notificaciones", href: "/notifications", icon: Bell },
       { title: "Tokens VRX", href: "/airdrop", icon: Coins },
-      { title: "Configuración", href: "/dashboard/settings", icon: Settings },
+      { title: "Configuración", href: "/settings", icon: Settings },
       { title: "Ayuda", href: "/help", icon: HelpCircle },
     ]
   }
@@ -121,25 +129,33 @@ const adminNavigation: NavSection[] = [
   {
     title: "Gestión",
     items: [
-      { title: "Usuarios", href: "/dashboard/usuarios", icon: Users },
-      { title: "Certificados", href: "/dashboard/admin-certificados", icon: FileCheck },
-      { title: "Suscripciones", href: "/admin/subscriptions", icon: CreditCard },
+      { title: "Usuarios", href: "/admin/users", icon: Users },
+      { title: "Paquetes", href: "/admin/certificate-bundles", icon: Package },
+      { title: "Auditoría", href: "/auditoria", icon: FileText },
     ]
   },
   {
     title: "Finanzas",
     items: [
-      { title: "Pagos Wompi", href: "/admin/wompi", icon: CreditCard },
-      { title: "Precios", href: "/dashboard/precios", icon: Tag },
+      { title: "Pagos Wompi", href: "/admin/wompi-monitoring", icon: CreditCard },
+      { title: "Precios", href: "/pricing", icon: Tag },
     ]
   },
   {
     title: "Sistema",
     items: [
-      { title: "Airdrops", href: "/dashboard/airdrops", icon: Gift },
-      { title: "Marketplace", href: "/dashboard/marketplace-admin", icon: Store },
-      { title: "Base de Datos", href: "/dashboard/database", icon: Database },
+      { title: "Airdrops", href: "/airdrop", icon: Gift },
+      { title: "Marketplace", href: "/marketplace", icon: Store },
       { title: "Configuración", href: "/admin/settings", icon: Settings },
+    ]
+  },
+  {
+    title: "Desarrollo",
+    items: [
+      { title: "Email Testing", href: "/email-testing", icon: Mail },
+      { title: "BSC Testing", href: "/bsc-testing", icon: Code },
+      { title: "Wompi Diagnóstico", href: "/wompi-diagnostics", icon: Activity },
+      { title: "Orilux Status", href: "/orilux-status", icon: Activity },
     ]
   }
 ];

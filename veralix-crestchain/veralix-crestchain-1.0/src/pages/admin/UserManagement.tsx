@@ -1,4 +1,4 @@
-import { AppLayout } from "@/components/layout/AppLayout";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { UserManagement as UserManagementComponent } from "@/components/admin/UserManagement";
 import { JewelryApprovalPanel } from "@/components/admin/JewelryApprovalPanel";
 import { RoleGuard } from "@/components/RoleGuard";
@@ -36,7 +36,7 @@ const UserManagement = () => {
   }, []);
 
   return (
-    <AppLayout>
+    <DashboardLayout title="Gestión de Usuarios" description="Administra usuarios, roles y permisos del sistema">
       <RoleGuard 
         requiredRole="admin" 
         showWarning 
@@ -80,7 +80,7 @@ const UserManagement = () => {
           </Tabs>
         </div>
       </RoleGuard>
-    </AppLayout>
+    </DashboardLayout>
   );
 };
 

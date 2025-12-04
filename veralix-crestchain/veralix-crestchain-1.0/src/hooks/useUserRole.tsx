@@ -58,6 +58,18 @@ export function useUserRole() {
           setRole(null);
         } else {
           const userRole = data?.role || null;
+          
+          // Si el usuario no tiene rol, verificar si hay un rol pendiente del registro
+          if (!userRole) {
+            const pendingRole = localStorage.getItem('pendingUserRole');
+            if (pendingRole && (pendingRole === 'joyero' || pendingRole === 'cliente')) {
+              console.log('🔐 useUserRole: Found pending role from registration:', pendingRole);
+              // Asignar el rol pendiente automáticamente
+              await assignPendingRole(user.id, pendingRole);
+              return; // El rol se actualizará después de asignarlo
+            }
+          }
+          
           console.log('useUserRole: Setting role to:', userRole);
           setRole(userRole);
         }
@@ -73,12 +85,94 @@ export function useUserRole() {
     fetchUserRole();
   }, [user]);
 
+  // Función para asignar el rol pendiente del registro
+  const assignPendingRole = async (userId: string, pendingRole: 'joyero' | 'cliente') => {
+    try {
+      console.log('🔐 useUserRole: Assigning pending role:', pendingRole);
+      
+      // Insertar el rol en la tabla user_roles
+      const { error: insertError } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: userId,
+          role: pendingRole
+        });
+
+      if (insertError) {
+        // Si ya existe, intentar actualizar
+        if (insertError.code === '23505') { // Unique violation
+          const { error: updateError } = await supabase
+            .from('user_roles')
+            .update({ role: pendingRole })
+            .eq('user_id', userId);
+          
+          if (updateError) {
+            console.error('Error updating role:', updateError);
+            return;
+          }
+        } else {
+          console.error('Error inserting role:', insertError);
+          return;
+        }
+      }
+
+      console.log('✅ useUserRole: Role assigned successfully:', pendingRole);
+      
+      // Limpiar el rol pendiente del localStorage
+      localStorage.removeItem('pendingUserRole');
+      
+      // Actualizar el estado local
+      setRole(pendingRole);
+      setLoading(false);
+      setInitialCheckDone(true);
+      
+    } catch (error) {
+      console.error('Error assigning pending role:', error);
+      setLoading(false);
+      setInitialCheckDone(true);
+    }
+  };
+
   const updateRole = async (newRole: 'joyero' | 'cliente' | 'admin') => {
     if (!user) return { error: 'No user found' };
 
     try {
-      // NOTA: Esta función ahora solo permite a admins cambiar roles directamente
-      // Los usuarios deben solicitar cambios de rol a través de request_role_change
+      // Si el usuario no tiene rol (es nuevo), permitir establecer rol inicial
+      if (!role) {
+        console.log('🔐 updateRole: Setting initial role for new user:', newRole);
+        
+        // Intentar insertar primero
+        const { error: insertError } = await supabase
+          .from('user_roles')
+          .insert({
+            user_id: user.id,
+            role: newRole
+          });
+
+        if (insertError) {
+          // Si ya existe, intentar actualizar
+          if (insertError.code === '23505') {
+            const { error: updateError } = await supabase
+              .from('user_roles')
+              .update({ role: newRole })
+              .eq('user_id', user.id);
+            
+            if (updateError) {
+              console.error('Error updating role:', updateError);
+              return { error: updateError };
+            }
+          } else {
+            console.error('Error inserting role:', insertError);
+            return { error: insertError };
+          }
+        }
+
+        console.log('✅ updateRole: Initial role set successfully:', newRole);
+        setRole(newRole);
+        return { error: null };
+      }
+
+      // Si el usuario ya tiene rol, usar el RPC de admin (solo admins pueden cambiar roles)
       const { data, error } = await supabase.rpc('admin_change_user_role', {
         _target_user_id: user.id,
         _new_role: newRole

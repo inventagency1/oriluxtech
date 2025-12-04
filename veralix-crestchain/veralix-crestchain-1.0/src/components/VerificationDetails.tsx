@@ -96,13 +96,13 @@ export function VerificationDetails({ data }: VerificationDetailsProps) {
 
   const openExplorer = () => {
     if (data.blockchain_data.transactionHash !== 'Pendiente') {
-      window.open(`https://scan.crestchain.pro/tx/${data.blockchain_data.transactionHash}`, '_blank');
+      window.open(`https://bscscan.com/tx/${data.blockchain_data.transactionHash}`, '_blank');
     }
   };
 
   const openExplorerAddress = () => {
     if (data.blockchain_data.contractAddress !== 'Pendiente') {
-      window.open(`https://scan.crestchain.pro/address/${data.blockchain_data.contractAddress}`, '_blank');
+      window.open(`https://bscscan.com/address/${data.blockchain_data.contractAddress}`, '_blank');
     }
   };
 

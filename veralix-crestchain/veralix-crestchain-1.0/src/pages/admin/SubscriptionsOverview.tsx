@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -146,17 +147,20 @@ export default function SubscriptionsOverview() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
-        <Skeleton className="h-8 w-64 mb-6" />
-        <div className="grid gap-6 md:grid-cols-4 mb-6">
-          {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32" />)}
+      <DashboardLayout title="Paquetes de Certificados" description="Panel de control de ventas y métricas">
+        <div className="container mx-auto">
+          <Skeleton className="h-8 w-64 mb-6" />
+          <div className="grid gap-6 md:grid-cols-4 mb-6">
+            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32" />)}
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <DashboardLayout title="Paquetes de Certificados" description="Panel de control de ventas y métricas">
+      <div className="container mx-auto">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold mb-2">Paquetes de Certificados</h1>
@@ -365,6 +369,7 @@ export default function SubscriptionsOverview() {
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }

@@ -32,6 +32,7 @@ const NewJewelry = () => {
   const [formData, setFormData] = useState({
     name: "",
     type: "" as JewelryType | "",
+    typeDisplay: "", // Nombre específico del tipo (ej: "Cadena Italiana")
     description: "",
     materials: [] as string[],
     weight: "",
@@ -52,26 +53,57 @@ const NewJewelry = () => {
   const { generateCertificate } = useNFTCertificate();
   const { autoCompleteTask } = useOnboarding();
 
-  // Map display names to database enum values
+  // Tipos de joyas con referencias reales del negocio
   const jewelryTypes = [
-    { display: "Anillo", value: "anillo" as JewelryType },
-    { display: "Collar", value: "collar" as JewelryType },
-    { display: "Pulsera", value: "pulsera" as JewelryType },
-    { display: "Pendientes", value: "pendientes" as JewelryType },
-    { display: "Broche", value: "broche" as JewelryType },
-    { display: "Reloj", value: "reloj" as JewelryType },
-    { display: "Cadena", value: "cadena" as JewelryType },
-    { display: "Dije", value: "dije" as JewelryType },
-    { display: "Gemelos", value: "gemelos" as JewelryType },
-    { display: "Tiara", value: "tiara" as JewelryType },
-    { display: "Otro", value: "otro" as JewelryType }
+    // Cadenas
+    { display: "Cadena Italiana", value: "cadena" as JewelryType, id: "cadena-italiana" },
+    { display: "Cadena Eslabón", value: "cadena" as JewelryType, id: "cadena-eslabon" },
+    { display: "Cadena Rústica", value: "cadena" as JewelryType, id: "cadena-rustica" },
+    // Anillos
+    { display: "Anillo Caballero", value: "anillo" as JewelryType, id: "anillo-caballero" },
+    { display: "Anillo de Compromiso", value: "anillo" as JewelryType, id: "anillo-compromiso" },
+    { display: "Anillo Dama", value: "anillo" as JewelryType, id: "anillo-dama" },
+    { display: "Argolla de Matrimonio", value: "anillo" as JewelryType, id: "argolla-matrimonio" },
+    // Dijes y Colgantes
+    { display: "Dije", value: "dije" as JewelryType, id: "dije" },
+    // Pulseras
+    { display: "Pulsera Italiana", value: "pulsera" as JewelryType, id: "pulsera-italiana" },
+    { display: "Pulsera Eslabón", value: "pulsera" as JewelryType, id: "pulsera-eslabon" },
+    { display: "Pulsera Tejida con Balineria", value: "pulsera" as JewelryType, id: "pulsera-tejida" },
+    // Rosarios
+    { display: "Rosario", value: "collar" as JewelryType, id: "rosario" },
+    // Aretes
+    { display: "Topos", value: "pendientes" as JewelryType, id: "topos" },
+    { display: "Candongas", value: "pendientes" as JewelryType, id: "candongas" },
+    // Otros
+    { display: "Set Cadena + Dije", value: "otro" as JewelryType, id: "set-cadena-dije" },
+    { display: "Otro", value: "otro" as JewelryType, id: "otro" }
   ];
 
+  // Materiales actualizados con tipos de oro y piedras preciosas
   const commonMaterials = [
-    "Oro 18k Nacional", "Oro 18k Italiano Ley 750", "Oro 14k", "Oro 10k", 
-    "Plata 925", "Platino",
-    "Diamante", "Esmeralda", "Rubí", "Zafiro", "Perlas naturales",
-    "Perlas cultivadas", "Topacio", "Amatista", "Cuarzo"
+    // Tipos de Oro
+    "Oro 18k Nacional",
+    "Oro 18k Italiano Ley 750", 
+    "Oro 14k", 
+    "Oro 10k",
+    // Plata y Platino
+    "Plata 925", 
+    "Platino",
+    // Piedras Preciosas
+    "Diamante", 
+    "Esmeralda", 
+    "Rubí", 
+    "Zafiro",
+    // Perlas
+    "Perlas Naturales",
+    "Perlas Cultivadas",
+    // Otras piedras
+    "Topacio", 
+    "Amatista", 
+    "Cuarzo",
+    "Aguamarina",
+    "Ópalo"
   ];
 
   const currencies = ["COP", "USD", "EUR"];
@@ -323,13 +355,27 @@ const NewJewelry = () => {
                   
                   <div className="space-y-2">
                     <Label htmlFor="type">Tipo de Joya *</Label>
-                    <Select value={formData.type} onValueChange={(value) => handleInputChange("type", value)}>
+                    <Select 
+                      value={formData.typeDisplay || formData.type} 
+                      onValueChange={(selectedId) => {
+                        const selectedType = jewelryTypes.find(t => t.id === selectedId);
+                        if (selectedType) {
+                          setFormData(prev => ({
+                            ...prev,
+                            type: selectedType.value,
+                            typeDisplay: selectedType.display
+                          }));
+                        }
+                      }}
+                    >
                       <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar tipo" />
+                        <SelectValue placeholder="Seleccionar tipo">
+                          {formData.typeDisplay || "Seleccionar tipo"}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         {jewelryTypes.map((type) => (
-                          <SelectItem key={type.value} value={type.value}>{type.display}</SelectItem>
+                          <SelectItem key={type.id} value={type.id}>{type.display}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

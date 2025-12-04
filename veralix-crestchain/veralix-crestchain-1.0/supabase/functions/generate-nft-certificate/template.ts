@@ -12,14 +12,18 @@ export interface CertificateData {
   jewelryImage: string | null;
   qrCode: string;
   // Hashes de ambas blockchains
-  transactionHash: string;        // Hash principal (Crestchain)
+  transactionHash: string;           // Hash principal
   oriluxchainTxHash: string | null;  // Hash de Oriluxchain
-  crestchainTxHash: string | null;   // Hash de Crestchain
+  bscTxHash: string | null;          // Hash de BSC Mainnet (REAL)
+  bscContractAddress: string | null; // Dirección del contrato en BSC
+  bscWalletAddress: string | null;   // Wallet que hizo el mint
   blockNumber: string;
+  bscBlockNumber: string | null;     // Block number en BSC
   tokenId: string;
   blockchainNetwork: string;
   // Link público y contraseña
   verificationUrl: string;           // URL pública del certificado
+  bscExplorerUrl: string | null;     // Link a BscScan
   certificatePassword: string | null; // Contraseña opcional para ver el certificado
 }
 
@@ -219,12 +223,30 @@ export function createHTMLTemplate(data: CertificateData): string {
           <span class="tx-hash full-hash">${data.oriluxchainTxHash || 'Pending...'}</span>
         </div>
         <div class="hash-row">
-          <span class="chain-name crest">CRESTCHAIN</span>
-          <span class="tx-hash full-hash">${data.crestchainTxHash || 'Pending...'}</span>
+          <span class="chain-name bsc">BSC MAINNET</span>
+          <span class="tx-hash full-hash">${data.bscTxHash ? `<a href="${data.bscExplorerUrl}" target="_blank" style="color: #f0b90b; text-decoration: none;">${data.bscTxHash}</a>` : 'Pending...'}</span>
         </div>
       </div>
+      
+      <!-- BSC Contract & Wallet Info -->
+      ${data.bscTxHash && data.bscContractAddress ? `
+      <div class="bsc-details">
+        <div class="bsc-detail-row">
+          <span class="bsc-label">Contract:</span>
+          <a href="https://bscscan.com/address/${data.bscContractAddress}" target="_blank" class="bsc-value">${data.bscContractAddress}</a>
+        </div>
+        ${data.bscWalletAddress ? `
+        <div class="bsc-detail-row">
+          <span class="bsc-label">Minted by:</span>
+          <a href="https://bscscan.com/address/${data.bscWalletAddress}" target="_blank" class="bsc-value">${data.bscWalletAddress}</a>
+        </div>
+        ` : ''}
+      </div>
+      ` : ''}
+      
       <div class="block-info">
-        <span class="block-number">BLOCK #${data.blockNumber}</span>
+        <span class="block-number">ORILUX BLOCK #${data.blockNumber}</span>
+        ${data.bscBlockNumber ? `<span class="block-number bsc-block">BSC BLOCK #${data.bscBlockNumber}</span>` : ''}
       </div>
     </div>
     
@@ -770,10 +792,10 @@ function getStyles(): string {
       border: 1px solid #2d5a3d;
     }
     
-    .chain-name.crest {
-      background: linear-gradient(135deg, #2a1a3a, #180d28);
-      color: #a78bfa;
-      border: 1px solid #5a2d6d;
+    .chain-name.bsc {
+      background: linear-gradient(135deg, #3a2a1a, #281d0d);
+      color: #f0b90b;
+      border: 1px solid #6d5a2d;
     }
     
     .tx-hash {
@@ -803,6 +825,47 @@ function getStyles(): string {
       font-weight: 600;
       color: #C9A961;
       letter-spacing: 1px;
+      margin-right: 15px;
+    }
+    
+    .block-number.bsc-block {
+      color: #f0b90b;
+    }
+    
+    .bsc-details {
+      margin: 10px 0;
+      padding: 10px;
+      background: rgba(240, 185, 11, 0.05);
+      border: 1px solid rgba(240, 185, 11, 0.2);
+      border-radius: 6px;
+    }
+    
+    .bsc-detail-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 0;
+      font-size: 8px;
+    }
+    
+    .bsc-label {
+      color: #888;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .bsc-value {
+      color: #f0b90b;
+      font-family: 'Courier New', monospace;
+      word-break: break-all;
+      text-align: right;
+      max-width: 70%;
+      text-decoration: none;
+    }
+    
+    .bsc-value:hover {
+      text-decoration: underline;
     }
   `;
 }

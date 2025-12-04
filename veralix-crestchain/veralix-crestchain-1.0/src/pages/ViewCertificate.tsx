@@ -359,73 +359,112 @@ const ViewCertificate = () => {
             </CardContent>
           </Card>
 
-          {/* Card 2: Verificación Oriluxchain */}
+          {/* Card 2: Verificación BSC Mainnet */}
           <Card className="border-veralix-gold/20 bg-card/95 backdrop-blur">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-veralix-gold">
                 <Shield className="w-5 h-5" />
-                Verificación Oriluxchain
+                Verificación Blockchain
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               
               {/* Estado de Verificación */}
-              {certificate.orilux_blockchain_status === 'verified' ? (
+              {certificate.transaction_hash && !certificate.transaction_hash.startsWith('0x0') && certificate.block_number !== 'pending' ? (
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/30">
                   <CheckCircle className="w-5 h-5 text-green-500 shrink-0" />
                   <div>
-                    <p className="font-semibold text-green-500">✅ Verificado en Blockchain</p>
-                    <p className="text-xs text-muted-foreground">Certificado inmutable en Oriluxchain</p>
+                    <p className="font-semibold text-green-500">✅ Verificado en BSC Mainnet</p>
+                    <p className="text-xs text-muted-foreground">NFT minteado en BNB Smart Chain</p>
                   </div>
                 </div>
-              ) : certificate.orilux_blockchain_status === 'pending' ? (
+              ) : certificate.block_number === 'pending' || certificate.block_number === 'pending-no-funds' ? (
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
                   <Clock className="w-5 h-5 text-amber-500 shrink-0 animate-pulse" />
                   <div>
-                    <p className="font-semibold text-amber-500">⏳ Pendiente de Minería</p>
-                    <p className="text-xs text-muted-foreground">El bloque está siendo procesado</p>
+                    <p className="font-semibold text-amber-500">⏳ Pendiente de Mint</p>
+                    <p className="text-xs text-muted-foreground">El NFT será minteado próximamente</p>
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-gray-500/10 border border-gray-500/30">
-                  <AlertCircle className="w-5 h-5 text-muted-foreground shrink-0" />
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
+                  <Shield className="w-5 h-5 text-blue-500 shrink-0" />
                   <div>
-                    <p className="font-semibold text-muted-foreground">No registrado en blockchain</p>
-                    <p className="text-xs text-muted-foreground">Certificado en validación</p>
+                    <p className="font-semibold text-blue-500">Certificado Registrado</p>
+                    <p className="text-xs text-muted-foreground">Verificación en proceso</p>
                   </div>
                 </div>
               )}
               
-              {/* Hash de Blockchain */}
-              {certificate.orilux_blockchain_hash && (
+              {/* Transaction Hash con link a BscScan */}
+              {certificate.transaction_hash && (
                 <div>
-                  <dt className="text-sm text-muted-foreground">Blockchain Hash</dt>
+                  <dt className="text-sm text-muted-foreground">Transaction Hash</dt>
                   <dd className="font-mono text-xs text-foreground flex items-center gap-2 break-all">
                     <span className="truncate flex-1">
-                      {certificate.orilux_blockchain_hash.slice(0, 12)}...
-                      {certificate.orilux_blockchain_hash.slice(-10)}
+                      {certificate.transaction_hash.slice(0, 10)}...
+                      {certificate.transaction_hash.slice(-8)}
                     </span>
                     <Button
                       size="icon"
                       variant="ghost"
                       className="shrink-0 h-6 w-6"
                       onClick={() => {
-                        navigator.clipboard.writeText(certificate.orilux_blockchain_hash!);
+                        navigator.clipboard.writeText(certificate.transaction_hash!);
                         toast({ title: "Hash copiado al portapapeles" });
                       }}
                     >
                       <Copy className="h-3 w-3" />
                     </Button>
+                    {certificate.transaction_hash && !certificate.transaction_hash.startsWith('0x0') && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="shrink-0 h-6 w-6"
+                        onClick={() => window.open(`https://bscscan.com/tx/${certificate.transaction_hash}`, '_blank')}
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                      </Button>
+                    )}
                   </dd>
                 </div>
               )}
               
               {/* Número de Bloque */}
-              {certificate.orilux_block_number && (
+              {certificate.block_number && certificate.block_number !== 'pending' && certificate.block_number !== 'error' && (
                 <div>
                   <dt className="text-sm text-muted-foreground">Bloque</dt>
-                  <dd className="font-semibold text-foreground">
-                    #{certificate.orilux_block_number}
+                  <dd className="font-semibold text-foreground flex items-center gap-2">
+                    #{certificate.block_number}
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="shrink-0 h-6 w-6"
+                      onClick={() => window.open(`https://bscscan.com/block/${certificate.block_number}`, '_blank')}
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
+                  </dd>
+                </div>
+              )}
+              
+              {/* Contrato */}
+              {certificate.contract_address && (
+                <div>
+                  <dt className="text-sm text-muted-foreground">Contrato NFT</dt>
+                  <dd className="font-mono text-xs text-foreground flex items-center gap-2 break-all">
+                    <span className="truncate flex-1">
+                      {certificate.contract_address.slice(0, 10)}...
+                      {certificate.contract_address.slice(-6)}
+                    </span>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="shrink-0 h-6 w-6"
+                      onClick={() => window.open(`https://bscscan.com/address/${certificate.contract_address}`, '_blank')}
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
                   </dd>
                 </div>
               )}
@@ -433,12 +472,17 @@ const ViewCertificate = () => {
               {/* Red Blockchain */}
               <div>
                 <dt className="text-sm text-muted-foreground">Red Blockchain</dt>
-                <dd className="font-semibold text-foreground">
-                  {certificate.blockchain_network || 'Crestchain'}
+                <dd className="font-semibold text-foreground flex items-center gap-2">
+                  <img 
+                    src="https://cryptologos.cc/logos/bnb-bnb-logo.png" 
+                    alt="BSC" 
+                    className="w-4 h-4"
+                  />
+                  {certificate.blockchain_network === 'BSC_MAINNET' ? 'BSC Mainnet' : certificate.blockchain_network || 'BSC Mainnet'}
                 </dd>
               </div>
               
-              {/* Token ID (Info complementaria) */}
+              {/* Token ID */}
               {certificate.token_id && (
                 <div>
                   <dt className="text-sm text-muted-foreground">Token ID</dt>
@@ -446,6 +490,18 @@ const ViewCertificate = () => {
                     #{certificate.token_id}
                   </dd>
                 </div>
+              )}
+              
+              {/* Botón Ver en BscScan */}
+              {certificate.transaction_hash && !certificate.transaction_hash.startsWith('0x0') && (
+                <Button
+                  className="w-full mt-2"
+                  variant="outline"
+                  onClick={() => window.open(`https://bscscan.com/tx/${certificate.transaction_hash}`, '_blank')}
+                >
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  Ver en BscScan
+                </Button>
               )}
               
             </CardContent>
@@ -500,15 +556,16 @@ const ViewCertificate = () => {
                 className="w-full"
                 variant="outline"
                 onClick={() => {
-                  const verificationUrl = certificate.orilux_verification_url || certificate.blockchain_verification_url;
-                  if (verificationUrl) {
-                    window.open(verificationUrl, "_blank");
+                  if (certificate.transaction_hash && !certificate.transaction_hash.startsWith('0x0')) {
+                    window.open(`https://bscscan.com/tx/${certificate.transaction_hash}`, "_blank");
+                  } else if (certificate.contract_address) {
+                    window.open(`https://bscscan.com/address/${certificate.contract_address}`, "_blank");
                   }
                 }}
-                disabled={!certificate.orilux_verification_url && !certificate.blockchain_verification_url}
+                disabled={!certificate.transaction_hash && !certificate.contract_address}
               >
                 <Eye className="mr-2 h-4 w-4" />
-                Verificar en Oriluxchain
+                Verificar en BSC
               </Button>
               <Button
                 className="w-full"

@@ -45,6 +45,7 @@ import NotFound from "./pages/NotFound";
 import EmailTesting from "./pages/EmailTesting";
 import OriluxchainTesting from "./pages/OriluxchainTesting";
 import CrestchainTesting from "./pages/CrestchainTesting";
+import BSCTesting from "./pages/BSCTesting";
 import OriluxchainStatus from "./pages/OriluxchainStatus";
 import ListingDetail from "./pages/ListingDetail";
 import Settings from "./pages/Settings";
@@ -58,6 +59,7 @@ import SubscriptionsOverview from "./pages/admin/SubscriptionsOverview";
 import WompiMonitoring from "./pages/admin/WompiMonitoring";
 import Maintenance from "./pages/Maintenance";
 import EmailVerified from "./pages/EmailVerified";
+import RegistroJoyeria from "./pages/RegistroJoyeria";
 import { MaintenanceGuard } from "./components/MaintenanceGuard";
 
 // Lazy load Analytics page for better initial load performance
@@ -89,6 +91,14 @@ const App = () => {
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/setup-password" element={<SetupPassword />} />
               <Route path="/email-verified" element={<EmailVerified />} />
+              <Route 
+                path="/registro-joyeria" 
+                element={
+                  <ProtectedRoute>
+                    <RegistroJoyeria />
+                  </ProtectedRoute>
+                } 
+              />
               <Route path="/pricing" element={<Pricing />} />
         <Route path="/checkout" element={<Checkout />} />
           <Route 
@@ -289,6 +299,14 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <CrestchainTesting />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/bsc-testing" 
+                element={
+                  <ProtectedRoute>
+                    <BSCTesting />
                   </ProtectedRoute>
                 } 
               />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -10,6 +10,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useOnboarding } from "@/hooks/useOnboarding";
+import { useNavigate } from "react-router-dom";
 import { JoyeroDashboard } from "@/components/JoyeroDashboard";
 import { ClienteDashboard } from "@/components/ClienteDashboard";
 import { AdminDashboard } from "@/components/AdminDashboard";
@@ -45,8 +46,21 @@ const Dashboard = () => {
     clearSimulatedRole
   } = useUserRole();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
   const { showOnboarding, completeOnboarding, resetOnboarding } = useOnboarding();
+
+  // Manejar redirección post-registro
+  useEffect(() => {
+    if (!roleLoading && role) {
+      const postRegisterRedirect = localStorage.getItem('postRegisterRedirect');
+      if (postRegisterRedirect) {
+        localStorage.removeItem('postRegisterRedirect');
+        console.log('🔄 Redirecting to post-register page:', postRegisterRedirect);
+        navigate(postRegisterRedirect);
+      }
+    }
+  }, [role, roleLoading, navigate]);
 
   const handleRoleChange = async (newRole: 'joyero' | 'cliente' | 'admin') => {
     try {
@@ -89,43 +103,86 @@ const Dashboard = () => {
   if (!role) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <VeralixLogo size={48} className="mx-auto mb-4" />
-            <CardTitle className="text-2xl font-heading">Selecciona tu Rol</CardTitle>
-            <CardDescription>
-              Elige cómo quieres usar Veralix
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Button 
-              onClick={() => handleRoleChange('joyero')}
-              className="w-full h-16 bg-gradient-gold hover:shadow-gold transition-premium"
-            >
-              <div className="flex items-center space-x-3">
-                <Crown className="w-6 h-6" />
-                <div className="text-left">
-                  <div className="font-semibold">Soy Joyero</div>
-                  <div className="text-sm opacity-90">Registro y certifico joyas</div>
+        <div className="w-full max-w-lg">
+          {/* Welcome Header */}
+          <div className="text-center mb-8">
+            <VeralixLogo size={56} className="mx-auto mb-4" />
+            <h1 className="text-3xl font-bold font-heading bg-gradient-gold bg-clip-text text-transparent mb-2">
+              ¡Bienvenido a Veralix!
+            </h1>
+            <p className="text-muted-foreground">
+              Cuéntanos un poco sobre ti para personalizar tu experiencia
+            </p>
+          </div>
+
+          <Card className="shadow-premium border-border/50">
+            <CardHeader className="text-center pb-4">
+              <CardTitle className="text-xl font-heading">¿Qué tipo de usuario eres?</CardTitle>
+              <CardDescription>
+                Selecciona la opción que mejor te describa
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Joyero Option */}
+              <button 
+                onClick={() => handleRoleChange('joyero')}
+                className="w-full p-6 rounded-xl border-2 border-border hover:border-primary/50 bg-gradient-to-br from-amber-500/5 to-yellow-500/5 hover:from-amber-500/10 hover:to-yellow-500/10 transition-all duration-300 group"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 rounded-full bg-gradient-gold flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <Crown className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="text-left flex-1">
+                    <h3 className="text-lg font-semibold mb-1 group-hover:text-primary transition-colors">
+                      Soy Joyero / Joyería
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Tengo un negocio de joyería y quiero certificar mis piezas con blockchain
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="secondary" className="text-xs">Crear certificados</Badge>
+                      <Badge variant="secondary" className="text-xs">Vender en marketplace</Badge>
+                      <Badge variant="secondary" className="text-xs">Gestionar inventario</Badge>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </Button>
-            
-            <Button 
-              onClick={() => handleRoleChange('cliente')}
-              variant="outline"
-              className="w-full h-16"
-            >
-              <div className="flex items-center space-x-3">
-                <UserCheck className="w-6 h-6" />
-                <div className="text-left">
-                  <div className="font-semibold">Soy Cliente</div>
-                  <div className="text-sm opacity-70">Verifico certificados de mis joyas</div>
+              </button>
+              
+              {/* Cliente Option */}
+              <button 
+                onClick={() => handleRoleChange('cliente')}
+                className="w-full p-6 rounded-xl border-2 border-border hover:border-primary/50 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 hover:from-blue-500/10 hover:to-cyan-500/10 transition-all duration-300 group"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <UserCheck className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="text-left flex-1">
+                    <h3 className="text-lg font-semibold mb-1 group-hover:text-primary transition-colors">
+                      Soy Cliente / Comprador
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Quiero comprar joyas certificadas y verificar su autenticidad
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="secondary" className="text-xs">Verificar certificados</Badge>
+                      <Badge variant="secondary" className="text-xs">Explorar marketplace</Badge>
+                      <Badge variant="secondary" className="text-xs">Mis colecciones</Badge>
+                    </div>
+                  </div>
                 </div>
+              </button>
+
+              {/* Help text */}
+              <div className="pt-4 text-center">
+                <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                  <HelpCircle className="w-3 h-3" />
+                  Podrás cambiar esto más adelante en configuración
+                </p>
               </div>
-            </Button>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }

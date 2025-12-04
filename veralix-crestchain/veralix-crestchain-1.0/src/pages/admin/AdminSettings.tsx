@@ -1,4 +1,4 @@
-import { AppLayout } from "@/components/layout/AppLayout";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { RoleGuard } from "@/components/RoleGuard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PricingManagement } from "@/components/admin/PricingManagement";
@@ -14,7 +14,7 @@ import { BlockchainNetworkSwitch } from "@/components/admin/BlockchainNetworkSwi
 
 const AdminSettings = () => {
   return (
-    <AppLayout>
+    <DashboardLayout title="Configuración del Sistema" description="Gestiona la configuración global de Veralix">
       <RoleGuard 
         requiredRole="admin" 
         showWarning 
@@ -145,7 +145,7 @@ const AdminSettings = () => {
           </Tabs>
         </div>
       </RoleGuard>
-    </AppLayout>
+    </DashboardLayout>
   );
 };
 

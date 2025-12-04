@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -132,29 +133,21 @@ export default function WompiMonitoring() {
   };
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => navigate('/admin-settings')}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
+    <DashboardLayout title="Monitor Wompi" description="Monitoreo en tiempo real de pagos y webhooks">
+      <div className="container mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Monitor Wompi</h1>
             <p className="text-muted-foreground">
               Monitoreo en tiempo real de pagos y webhooks
             </p>
           </div>
+          <Button onClick={fetchData} disabled={loading}>
+            <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            Actualizar
+          </Button>
         </div>
-        <Button onClick={fetchData} disabled={loading}>
-          <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          Actualizar
-        </Button>
-      </div>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-3">
@@ -368,6 +361,7 @@ export default function WompiMonitoring() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }

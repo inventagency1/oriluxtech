@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Package, 
   Plus, 
+  Minus,
   DollarSign, 
   Users, 
   TrendingUp, 
@@ -24,7 +25,8 @@ import {
   Gift,
   CreditCard,
   Banknote,
-  Receipt
+  Receipt,
+  AlertTriangle
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -56,15 +58,27 @@ export function AdminCertificateAssignment() {
     assignments,
     incomeSummary,
     assignCertificates,
+    reduceCertificates,
+    getUserCertificateBalance,
     fetchAssignments,
     fetchIncomeSummary,
     searchUsers
   } = useAdminCertificateAssignment();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isReduceDialogOpen, setIsReduceDialogOpen] = useState(false);
+  const [isBalanceDialogOpen, setIsBalanceDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [reduceSearchQuery, setReduceSearchQuery] = useState('');
+  const [balanceSearchQuery, setBalanceSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [reduceSearchResults, setReduceSearchResults] = useState<any[]>([]);
+  const [balanceSearchResults, setBalanceSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
+  const [reduceSearching, setReduceSearching] = useState(false);
+  const [balanceSearching, setBalanceSearching] = useState(false);
+  const [selectedUserBalance, setSelectedUserBalance] = useState<{ balance: number; name: string } | null>(null);
+  const [consultedUserBalance, setConsultedUserBalance] = useState<{ balance: number; name: string; email: string; purchases: any[] } | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -85,6 +99,14 @@ export function AdminCertificateAssignment() {
     fetchIncomeSummary();
   }, []);
 
+  // Form state para reducir
+  const [reduceFormData, setReduceFormData] = useState({
+    targetUserId: '',
+    targetEmail: '',
+    certificatesCount: 1,
+    reason: ''
+  });
+
   // Búsqueda de usuarios con debounce
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -100,6 +122,38 @@ export function AdminCertificateAssignment() {
 
     return () => clearTimeout(timer);
   }, [searchQuery]);
+
+  // Búsqueda de usuarios para reducir con debounce
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (reduceSearchQuery.length >= 3) {
+        setReduceSearching(true);
+        const results = await searchUsers(reduceSearchQuery);
+        setReduceSearchResults(results);
+        setReduceSearching(false);
+      } else {
+        setReduceSearchResults([]);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [reduceSearchQuery]);
+
+  // Búsqueda de usuarios para consultar balance con debounce
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (balanceSearchQuery.length >= 3) {
+        setBalanceSearching(true);
+        const results = await searchUsers(balanceSearchQuery);
+        setBalanceSearchResults(results);
+        setBalanceSearching(false);
+      } else {
+        setBalanceSearchResults([]);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [balanceSearchQuery]);
 
   const handlePresetSelect = (preset: typeof PACKAGE_PRESETS[0]) => {
     setFormData(prev => ({
@@ -158,6 +212,88 @@ export function AdminCertificateAssignment() {
     setSearchResults([]);
   };
 
+  // Seleccionar usuario para reducir
+  const selectUserForReduce = async (user: any) => {
+    console.log('Selected user for reduce:', user);
+    setReduceFormData(prev => ({ 
+      ...prev, 
+      targetUserId: user.user_id,
+      targetEmail: user.email 
+    }));
+    setReduceSearchQuery(user.email);
+    setReduceSearchResults([]);
+    
+    // Obtener balance actual
+    const result = await getUserCertificateBalance(user.email);
+    if (result.success) {
+      setSelectedUserBalance({ balance: result.balance, name: result.name });
+    }
+  };
+
+  // Manejar submit de reducción
+  const handleReduceSubmit = async () => {
+    console.log('handleReduceSubmit called with:', reduceFormData);
+    
+    if (!reduceFormData.targetUserId || !reduceFormData.targetEmail || reduceFormData.certificatesCount <= 0) {
+      console.log('Validation failed:', { 
+        hasUserId: !!reduceFormData.targetUserId, 
+        hasEmail: !!reduceFormData.targetEmail,
+        count: reduceFormData.certificatesCount 
+      });
+      return;
+    }
+
+    const result = await reduceCertificates(
+      reduceFormData.targetUserId,
+      reduceFormData.targetEmail,
+      reduceFormData.certificatesCount,
+      reduceFormData.reason
+    );
+
+    if (result.success) {
+      setIsReduceDialogOpen(false);
+      resetReduceForm();
+      fetchIncomeSummary();
+    }
+  };
+
+  // Reset formulario de reducción
+  const resetReduceForm = () => {
+    setReduceFormData({
+      targetUserId: '',
+      targetEmail: '',
+      certificatesCount: 1,
+      reason: ''
+    });
+    setReduceSearchQuery('');
+    setReduceSearchResults([]);
+    setSelectedUserBalance(null);
+  };
+
+  // Seleccionar usuario para consultar balance
+  const selectUserForBalance = async (user: any) => {
+    setBalanceSearchQuery(user.email);
+    setBalanceSearchResults([]);
+    
+    // Obtener balance detallado
+    const result = await getUserCertificateBalance(user.email, true);
+    if (result.success) {
+      setConsultedUserBalance({
+        balance: result.balance,
+        name: result.name || user.full_name || user.business_name || user.email,
+        email: user.email,
+        purchases: result.purchases || []
+      });
+    }
+  };
+
+  // Reset consulta de balance
+  const resetBalanceQuery = () => {
+    setBalanceSearchQuery('');
+    setBalanceSearchResults([]);
+    setConsultedUserBalance(null);
+  };
+
   const getPaymentTypeBadge = (type: string) => {
     const config: Record<string, { variant: 'default' | 'secondary' | 'outline' | 'destructive'; label: string }> = {
       external: { variant: 'default', label: 'Pago Externo' },
@@ -172,20 +308,263 @@ export function AdminCertificateAssignment() {
   return (
     <div className="space-y-6">
       {/* Header con resumen */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-2xl font-bold">Asignación de Certificados</h2>
           <p className="text-muted-foreground">
-            Asigna paquetes de certificados a usuarios y registra ingresos externos
+            Asigna o reduce certificados de usuarios
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Asignar Certificados
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2 flex-wrap">
+          {/* Botón Consultar Balance */}
+          <Dialog open={isBalanceDialogOpen} onOpenChange={(open) => { setIsBalanceDialogOpen(open); if (!open) resetBalanceQuery(); }}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Search className="mr-2 h-4 w-4" />
+                Consultar Balance
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Search className="h-5 w-5 text-primary" />
+                  Consultar Balance de Certificados
+                </DialogTitle>
+                <DialogDescription>
+                  Busca un usuario para ver cuántos certificados tiene disponibles
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 py-4">
+                {/* Búsqueda de usuario */}
+                <div className="space-y-2">
+                  <Label>Buscar Usuario</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar por email o nombre..."
+                      value={balanceSearchQuery}
+                      onChange={(e) => {
+                        setBalanceSearchQuery(e.target.value);
+                        if (consultedUserBalance && e.target.value !== consultedUserBalance.email) {
+                          setConsultedUserBalance(null);
+                        }
+                      }}
+                      className="pl-10"
+                    />
+                    {balanceSearching && (
+                      <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin" />
+                    )}
+                  </div>
+                  {balanceSearchResults.length > 0 && (
+                    <div className="border rounded-md divide-y max-h-40 overflow-y-auto">
+                      {balanceSearchResults.map((user) => (
+                        <button
+                          key={user.user_id}
+                          className="w-full px-3 py-2 text-left hover:bg-muted transition-colors"
+                          onClick={() => selectUserForBalance(user)}
+                        >
+                          <p className="font-medium">{user.full_name || user.business_name || 'Sin nombre'}</p>
+                          <p className="text-sm text-muted-foreground">{user.email}</p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Resultado del balance */}
+                {consultedUserBalance && (
+                  <div className="space-y-4">
+                    <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20">
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <p className="font-semibold text-lg">{consultedUserBalance.name}</p>
+                          <p className="text-sm text-muted-foreground">{consultedUserBalance.email}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-3xl font-bold text-primary">{consultedUserBalance.balance}</p>
+                          <p className="text-sm text-muted-foreground">disponibles</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Historial de paquetes */}
+                    {consultedUserBalance.purchases && consultedUserBalance.purchases.length > 0 && (
+                      <div className="space-y-2">
+                        <Label>Historial de Paquetes</Label>
+                        <div className="border rounded-md divide-y max-h-60 overflow-y-auto">
+                          {consultedUserBalance.purchases.map((purchase: any) => (
+                            <div key={purchase.id} className="p-3 text-sm">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <p className="font-medium">{purchase.package_name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {new Date(purchase.purchased_at).toLocaleDateString('es-CO')}
+                                  </p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-semibold">
+                                    {purchase.certificates_remaining}/{purchase.certificates_purchased}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {purchase.certificates_used} usados
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="mt-1">
+                                <Badge variant={purchase.payment_status === 'completed' ? 'default' : 'secondary'}>
+                                  {purchase.payment_status === 'completed' ? 'Completado' : purchase.payment_status}
+                                </Badge>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {consultedUserBalance.purchases && consultedUserBalance.purchases.length === 0 && (
+                      <div className="text-center py-4 text-muted-foreground">
+                        <p>Este usuario no tiene paquetes de certificados</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => { setIsBalanceDialogOpen(false); resetBalanceQuery(); }}>
+                  Cerrar
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Botón Reducir Certificados */}
+          <Dialog open={isReduceDialogOpen} onOpenChange={setIsReduceDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="destructive">
+                <Minus className="mr-2 h-4 w-4" />
+                Reducir Certificados
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-destructive" />
+                  Reducir Certificados
+                </DialogTitle>
+                <DialogDescription>
+                  Quita certificados del balance de un usuario
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 py-4">
+                {/* Búsqueda de usuario */}
+                <div className="space-y-2">
+                  <Label>Usuario</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar por email o nombre..."
+                      value={reduceSearchQuery}
+                      onChange={(e) => {
+                        setReduceSearchQuery(e.target.value);
+                        // Solo limpiar si el usuario está escribiendo algo diferente al email seleccionado
+                        if (e.target.value !== reduceFormData.targetEmail) {
+                          setReduceFormData(prev => ({ ...prev, targetEmail: '', targetUserId: '' }));
+                          setSelectedUserBalance(null);
+                        }
+                      }}
+                      className="pl-10"
+                    />
+                    {reduceSearching && (
+                      <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin" />
+                    )}
+                  </div>
+                  {reduceSearchResults.length > 0 && (
+                    <div className="border rounded-md divide-y max-h-40 overflow-y-auto">
+                      {reduceSearchResults.map((user) => (
+                        <button
+                          key={user.user_id}
+                          className="w-full px-3 py-2 text-left hover:bg-muted transition-colors"
+                          onClick={() => selectUserForReduce(user)}
+                        >
+                          <p className="font-medium">{user.full_name || user.business_name || 'Sin nombre'}</p>
+                          <p className="text-sm text-muted-foreground">{user.email}</p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Balance actual */}
+                {selectedUserBalance && (
+                  <div className="p-4 bg-muted rounded-lg">
+                    <p className="text-sm text-muted-foreground">Balance actual de {selectedUserBalance.name}</p>
+                    <p className="text-2xl font-bold">{selectedUserBalance.balance} certificados</p>
+                  </div>
+                )}
+
+                {/* Cantidad a reducir */}
+                <div className="space-y-2">
+                  <Label>Cantidad a reducir</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={selectedUserBalance?.balance || 1000}
+                    value={reduceFormData.certificatesCount}
+                    onChange={(e) => setReduceFormData(prev => ({ 
+                      ...prev, 
+                      certificatesCount: parseInt(e.target.value) || 0 
+                    }))}
+                  />
+                </div>
+
+                {/* Razón */}
+                <div className="space-y-2">
+                  <Label>Razón de la reducción</Label>
+                  <Textarea
+                    placeholder="Explica por qué se reducen los certificados..."
+                    value={reduceFormData.reason}
+                    onChange={(e) => setReduceFormData(prev => ({ ...prev, reason: e.target.value }))}
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => { setIsReduceDialogOpen(false); resetReduceForm(); }}>
+                  Cancelar
+                </Button>
+                <Button 
+                  variant="destructive"
+                  onClick={handleReduceSubmit} 
+                  disabled={loading || !reduceFormData.targetEmail || reduceFormData.certificatesCount <= 0 || !reduceFormData.reason}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Reduciendo...
+                    </>
+                  ) : (
+                    <>
+                      <Minus className="mr-2 h-4 w-4" />
+                      Reducir {reduceFormData.certificatesCount} certificados
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Botón Asignar Certificados */}
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Asignar Certificados
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Asignar Paquete de Certificados</DialogTitle>
@@ -417,6 +796,7 @@ export function AdminCertificateAssignment() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Tarjetas de resumen */}
