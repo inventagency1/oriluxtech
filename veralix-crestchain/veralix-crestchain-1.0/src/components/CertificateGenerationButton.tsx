@@ -111,6 +111,9 @@ export function CertificateGenerationButton({
 
   // Estado 1: Ya certificado - Mostrar detalles
   if (certificateResult?.success) {
+    const cert = certificateResult.certificate;
+    const crestchainExplorer = 'https://scan.crestchain.pro';
+    
     return (
       <Card className="border-primary/20 bg-primary/5">
         <CardHeader className="pb-3">
@@ -129,17 +132,30 @@ export function CertificateGenerationButton({
         </CardHeader>
         
         <CardContent className="space-y-4">
+          {/* Información de Blockchain */}
+          <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-md p-3 text-sm">
+            <div className="flex items-center gap-2 text-green-800 dark:text-green-200 font-medium mb-2">
+              <Shield className="w-4 h-4" />
+              Registrado en CrestChain (Red Principal)
+            </div>
+            <div className="text-green-700 dark:text-green-300 text-xs space-y-1">
+              <p>• Contrato: 0x419C2C5189A357914469CEBCB2d7c8c7A1bCD1Ee</p>
+              <p>• Red: CrestChain Mainnet (Chain ID: 85523)</p>
+              {cert.tokenId && <p>• Token ID: {cert.tokenId}</p>}
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">ID del Certificado</label>
               <div className="flex items-center space-x-2">
-                <code className="flex-1 p-2 bg-muted rounded text-sm font-mono">
-                  {certificateResult.certificate.id}
+                <code className="flex-1 p-2 bg-muted rounded text-sm font-mono truncate">
+                  {cert.id}
                 </code>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => copyToClipboard(certificateResult.certificate.id, "ID del certificado")}
+                  onClick={() => copyToClipboard(cert.id, "ID del certificado")}
                 >
                   <Copy className="w-4 h-4" />
                 </Button>
@@ -147,15 +163,15 @@ export function CertificateGenerationButton({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Hash de Transacción</label>
+              <label className="text-sm font-medium">Hash de Transacción (CrestChain)</label>
               <div className="flex items-center space-x-2">
-                <code className="flex-1 p-2 bg-muted rounded text-sm font-mono">
-                  {certificateResult.certificate.transactionHash.slice(0, 20)}...
+                <code className="flex-1 p-2 bg-muted rounded text-sm font-mono truncate">
+                  {cert.transactionHash}
                 </code>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => copyToClipboard(certificateResult.certificate.transactionHash, "Hash de transacción")}
+                  onClick={() => copyToClipboard(cert.transactionHash, "Hash de transacción")}
                 >
                   <Copy className="w-4 h-4" />
                 </Button>
@@ -167,7 +183,7 @@ export function CertificateGenerationButton({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => openVerificationUrl(certificateResult.certificate.certificateViewUrl || certificateResult.certificate.verificationUrl)}
+              onClick={() => openVerificationUrl(cert.certificateViewUrl || cert.verificationUrl)}
             >
               <ExternalLink className="w-4 h-4 mr-2" />
               Ver Certificado PDF
@@ -176,16 +192,16 @@ export function CertificateGenerationButton({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => openVerificationUrl(certificateResult.certificate.blockchainVerificationUrl || certificateResult.certificate.verificationUrl.replace('/certificate/', '/verify/'))}
+              onClick={() => window.open(`${crestchainExplorer}/tx/${cert.transactionHash}`, '_blank')}
             >
               <Shield className="w-4 h-4 mr-2" />
-              Ver Blockchain
+              Ver en CrestChain
             </Button>
             
             <Button
               variant="outline"
               size="sm"
-              onClick={() => openVerificationUrl(certificateResult.certificate.qrCodeUrl)}
+              onClick={() => openVerificationUrl(cert.qrCodeUrl)}
             >
               <QrCode className="w-4 h-4 mr-2" />
               Código QR

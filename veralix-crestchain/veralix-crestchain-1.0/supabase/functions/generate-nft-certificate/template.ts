@@ -12,19 +12,19 @@ export interface CertificateData {
   jewelryImage: string | null;
   qrCode: string;
   // Hashes de ambas blockchains
-  transactionHash: string;           // Hash principal
-  oriluxchainTxHash: string | null;  // Hash de Oriluxchain
-  bscTxHash: string | null;          // Hash de BSC Mainnet (REAL)
-  bscContractAddress: string | null; // Dirección del contrato en BSC
-  bscWalletAddress: string | null;   // Wallet que hizo el mint
+  transactionHash: string;              // Hash principal (CrestChain)
+  oriluxchainTxHash: string | null;     // Hash de Oriluxchain/Alddara
+  crestchainTxHash: string | null;      // Hash de CrestChain
+  crestchainContractAddress: string | null; // Dirección del contrato en CrestChain
+  crestchainWalletAddress: string | null;   // Wallet que hizo el mint
   blockNumber: string;
-  bscBlockNumber: string | null;     // Block number en BSC
+  crestchainBlockNumber: string | null; // Block number en CrestChain
   tokenId: string;
   blockchainNetwork: string;
   // Link público y contraseña
-  verificationUrl: string;           // URL pública del certificado
-  bscExplorerUrl: string | null;     // Link a BscScan
-  certificatePassword: string | null; // Contraseña opcional para ver el certificado
+  verificationUrl: string;              // URL pública del certificado
+  crestchainExplorerUrl: string | null; // Link a CrestChain Explorer
+  certificatePassword: string | null;   // Contraseña opcional para ver el certificado
 }
 
 export function createHTMLTemplate(data: CertificateData): string {
@@ -209,8 +209,7 @@ export function createHTMLTemplate(data: CertificateData): string {
       </div>
       ` : ''}
     </div>
-    
-    <!-- Bottom Bar - Dual Blockchain Verification -->
+        <!-- Bottom Bar - Dual Blockchain Verification -->
     <div class="blockchain-verification">
       <div class="verification-header">
         <span class="link-icon">🔗</span>
@@ -223,30 +222,34 @@ export function createHTMLTemplate(data: CertificateData): string {
           <span class="tx-hash full-hash">${data.oriluxchainTxHash || 'Pending...'}</span>
         </div>
         <div class="hash-row">
-          <span class="chain-name bsc">BSC MAINNET</span>
-          <span class="tx-hash full-hash">${data.bscTxHash ? `<a href="${data.bscExplorerUrl}" target="_blank" style="color: #f0b90b; text-decoration: none;">${data.bscTxHash}</a>` : 'Pending...'}</span>
+          <span class="chain-name crestchain">CRESTCHAIN</span>
+          <span class="tx-hash full-hash">${data.crestchainTxHash ? `<a href="https://scan.crestchain.pro/tx/${data.crestchainTxHash}" target="_blank" style="color: #10b981; text-decoration: none;">${data.crestchainTxHash}</a>` : 'Pending...'}</span>
         </div>
       </div>
       
-      <!-- BSC Contract & Wallet Info -->
-      ${data.bscTxHash && data.bscContractAddress ? `
-      <div class="bsc-details">
-        <div class="bsc-detail-row">
-          <span class="bsc-label">Contract:</span>
-          <a href="https://bscscan.com/address/${data.bscContractAddress}" target="_blank" class="bsc-value">${data.bscContractAddress}</a>
+      <!-- CrestChain Contract & Wallet Info -->
+      ${data.crestchainTxHash && data.crestchainContractAddress ? `
+      <div class="crestchain-details">
+        <div class="crestchain-detail-row">
+          <span class="crestchain-label">Contract:</span>
+          <a href="https://scan.crestchain.pro/address/${data.crestchainContractAddress}" target="_blank" class="crestchain-value">${data.crestchainContractAddress}</a>
         </div>
-        ${data.bscWalletAddress ? `
-        <div class="bsc-detail-row">
-          <span class="bsc-label">Minted by:</span>
-          <a href="https://bscscan.com/address/${data.bscWalletAddress}" target="_blank" class="bsc-value">${data.bscWalletAddress}</a>
+        ${data.crestchainWalletAddress ? `
+        <div class="crestchain-detail-row">
+          <span class="crestchain-label">Minted by:</span>
+          <a href="https://scan.crestchain.pro/address/${data.crestchainWalletAddress}" target="_blank" class="crestchain-value">${data.crestchainWalletAddress}</a>
         </div>
         ` : ''}
+        <div class="crestchain-detail-row">
+          <span class="crestchain-label">Token ID:</span>
+          <span class="crestchain-value">${data.tokenId}</span>
+        </div>
       </div>
       ` : ''}
       
       <div class="block-info">
         <span class="block-number">ORILUX BLOCK #${data.blockNumber}</span>
-        ${data.bscBlockNumber ? `<span class="block-number bsc-block">BSC BLOCK #${data.bscBlockNumber}</span>` : ''}
+        ${data.crestchainBlockNumber ? `<span class="block-number crestchain-block">CRESTCHAIN BLOCK #${data.crestchainBlockNumber}</span>` : ''}
       </div>
     </div>
     
@@ -792,10 +795,10 @@ function getStyles(): string {
       border: 1px solid #2d5a3d;
     }
     
-    .chain-name.bsc {
-      background: linear-gradient(135deg, #3a2a1a, #281d0d);
-      color: #f0b90b;
-      border: 1px solid #6d5a2d;
+    .chain-name.crestchain {
+      background: linear-gradient(135deg, #1a2a3a, #0d1828);
+      color: #10b981;
+      border: 1px solid #2d5a6d;
     }
     
     .tx-hash {
@@ -828,19 +831,19 @@ function getStyles(): string {
       margin-right: 15px;
     }
     
-    .block-number.bsc-block {
-      color: #f0b90b;
+    .block-number.crestchain-block {
+      color: #10b981;
     }
     
-    .bsc-details {
+    .crestchain-details {
       margin: 10px 0;
       padding: 10px;
-      background: rgba(240, 185, 11, 0.05);
-      border: 1px solid rgba(240, 185, 11, 0.2);
+      background: rgba(16, 185, 129, 0.05);
+      border: 1px solid rgba(16, 185, 129, 0.2);
       border-radius: 6px;
     }
     
-    .bsc-detail-row {
+    .crestchain-detail-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -848,15 +851,15 @@ function getStyles(): string {
       font-size: 8px;
     }
     
-    .bsc-label {
+    .crestchain-label {
       color: #888;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 1px;
     }
     
-    .bsc-value {
-      color: #f0b90b;
+    .crestchain-value {
+      color: #10b981;
       font-family: 'Courier New', monospace;
       word-break: break-all;
       text-align: right;
@@ -864,7 +867,7 @@ function getStyles(): string {
       text-decoration: none;
     }
     
-    .bsc-value:hover {
+    .crestchain-value:hover {
       text-decoration: underline;
     }
   `;

@@ -34,7 +34,8 @@ import {
   Code,
   Mail,
   Activity,
-  FileText
+  FileText,
+  UserPlus
 } from "lucide-react";
 import { VeralixLogo } from "@/components/ui/veralix-logo";
 
@@ -130,6 +131,8 @@ const adminNavigation: NavSection[] = [
     title: "Gestión",
     items: [
       { title: "Usuarios", href: "/admin/users", icon: Users },
+      { title: "Asignar Paquetes", href: "/admin/assign-packages", icon: UserPlus },
+      { title: "Todos los Certificados", href: "/admin/all-certificates", icon: Shield },
       { title: "Paquetes", href: "/admin/certificate-bundles", icon: Package },
       { title: "Auditoría", href: "/auditoria", icon: FileText },
     ]

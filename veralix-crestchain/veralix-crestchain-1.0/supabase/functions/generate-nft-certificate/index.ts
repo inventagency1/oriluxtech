@@ -456,14 +456,14 @@ async function generateCertificateHTML(
     qrCode: qrCodeBase64,
     transactionHash,
     oriluxchainTxHash: oriluxchainTxHash || null,
-    // Datos de BSC Mainnet (REALES)
-    bscTxHash: bscData?.txHash || null,
-    bscContractAddress: bscData?.contractAddress || null,
-    bscWalletAddress: bscData?.walletAddress || null,
-    bscBlockNumber: bscData?.blockNumber || null,
-    bscExplorerUrl: bscData?.explorerUrl || null,
+    // Datos de CrestChain (Red Principal)
+    crestchainTxHash: bscData?.txHash || null,
+    crestchainContractAddress: bscData?.contractAddress || '0x419C2C5189A357914469CEBCB2d7c8c7A1bCD1Ee',
+    crestchainWalletAddress: bscData?.walletAddress || '0x0A095705885d77e13aDd4643e47014c47f9b1D80',
+    crestchainBlockNumber: bscData?.blockNumber || null,
+    crestchainExplorerUrl: bscData?.explorerUrl || null,
     blockNumber,
-    blockchainNetwork: 'Oriluxchain + BSC Mainnet',
+    blockchainNetwork: 'Oriluxchain + CrestChain',
     tokenId,
     verificationUrl,
     certificatePassword: certificatePassword || null
@@ -471,9 +471,9 @@ async function generateCertificateHTML(
   
   console.log('📋 Datos del certificado:', {
     oriluxTxHash: certificateData.oriluxchainTxHash,
-    bscTxHash: certificateData.bscTxHash,
-    bscContract: certificateData.bscContractAddress,
-    bscWallet: certificateData.bscWalletAddress
+    crestchainTxHash: certificateData.crestchainTxHash,
+    crestchainContract: certificateData.crestchainContractAddress,
+    crestchainWallet: certificateData.crestchainWalletAddress
   });
   
   // 4. Crear HTML desde template

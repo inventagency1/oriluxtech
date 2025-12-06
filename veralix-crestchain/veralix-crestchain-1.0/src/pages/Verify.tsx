@@ -80,16 +80,16 @@ const Verify = () => {
 
       // Fetch jewelry item separately
       let jewelryData = null;
-      if (certData.jewelry_item_id) {
+      if (certData.property_id) {
         const { data: jewelry } = await supabase
           .from('jewelry_items')
           .select('name, type, materials, weight, dimensions, origin, craftsman, description, sale_price, currency')
-          .eq('id', certData.jewelry_item_id)
+          .eq('id', certData.property_id)
           .single();
         jewelryData = jewelry;
       }
 
-      const data = { ...certData, jewelry_items: jewelryData };
+      const data: any = { ...certData, jewelry_items: jewelryData };
 
       // Mapear datos para la vista
       const verificationData = {
@@ -115,10 +115,11 @@ const Verify = () => {
             }).format(data.jewelry_items.sale_price) : 'Precio no disponible'
         },
         blockchain_data: {
-          tokenId: data.token_id || 'Pendiente',
-          contractAddress: data.contract_address || 'Pendiente',
-          transactionHash: data.transaction_hash || 'Pendiente',
-          blockNumber: data.block_number || 'Pendiente'
+          tokenId: data.crestchain_token_id || data.token_id || 'Pendiente',
+          contractAddress: data.crestchain_contract_address || data.contract_address || '0x419C2C5189A357914469CEBCB2d7c8c7A1bCD1Ee',
+          transactionHash: data.crestchain_tx_hash || data.transaction_hash || 'Pendiente',
+          blockNumber: data.crestchain_block_number || data.block_number || 'Pendiente',
+          network: 'CrestChain Mainnet'
         },
         isVerified: data.is_verified
       };

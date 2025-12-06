@@ -58,6 +58,8 @@ import UserManagement from "./pages/admin/UserManagement";
 import SubscriptionsOverview from "./pages/admin/SubscriptionsOverview";
 import WompiMonitoring from "./pages/admin/WompiMonitoring";
 import PagosQR from "./pages/admin/PagosQR";
+import AllCertificates from "./pages/admin/AllCertificates";
+import AssignPackages from "./pages/admin/AssignPackages";
 import Maintenance from "./pages/Maintenance";
 import EmailVerified from "./pages/EmailVerified";
 import RegistroJoyeria from "./pages/RegistroJoyeria";
@@ -261,6 +263,22 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <PagosQR />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/all-certificates" 
+                element={
+                  <ProtectedRoute>
+                    <AllCertificates />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/assign-packages" 
+                element={
+                  <ProtectedRoute>
+                    <AssignPackages />
                   </ProtectedRoute>
                 } 
               />

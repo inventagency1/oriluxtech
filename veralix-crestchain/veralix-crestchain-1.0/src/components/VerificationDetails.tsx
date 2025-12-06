@@ -96,13 +96,13 @@ export function VerificationDetails({ data }: VerificationDetailsProps) {
 
   const openExplorer = () => {
     if (data.blockchain_data.transactionHash !== 'Pendiente') {
-      window.open(`https://bscscan.com/tx/${data.blockchain_data.transactionHash}`, '_blank');
+      window.open(`https://scan.crestchain.pro/tx/${data.blockchain_data.transactionHash}`, '_blank');
     }
   };
 
   const openExplorerAddress = () => {
     if (data.blockchain_data.contractAddress !== 'Pendiente') {
-      window.open(`https://bscscan.com/address/${data.blockchain_data.contractAddress}`, '_blank');
+      window.open(`https://scan.crestchain.pro/address/${data.blockchain_data.contractAddress}`, '_blank');
     }
   };
 
@@ -228,66 +228,87 @@ export function VerificationDetails({ data }: VerificationDetailsProps) {
           </CardContent>
         </Card>
 
-        {/* Blockchain Details Premium */}
-        <Card className="shadow-premium border-primary/10 bg-gradient-to-br from-background to-primary/5">
-          <CardHeader className="bg-gradient-gold rounded-t-lg">
-            <CardTitle className="font-heading flex items-center text-white">
-              <CheckCircle className="w-5 h-5 mr-2" />
-              Información Blockchain
+        {/* Blockchain Details Premium - CrestChain */}
+        <Card className="shadow-premium border-emerald-500/20 bg-gradient-to-br from-slate-900 via-emerald-950/20 to-slate-900 overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-t-lg relative">
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0wIDBoNDB2NDBIMHoiLz48cGF0aCBkPSJNMjAgMjBsMjAgMjBIMHoiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L2c+PC9zdmc+')] opacity-30"></div>
+            <CardTitle className="font-heading flex items-center text-white relative z-10">
+              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3">
+                <CheckCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="block">CrestChain Mainnet</span>
+                <span className="text-xs font-normal opacity-80">Chain ID: 85523 • Verificación Inmutable</span>
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 pt-6">
+            {/* Network Badge */}
+            <div className="flex items-center justify-center gap-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+              <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
+              <span className="text-emerald-400 font-semibold text-sm">Red Principal Activa</span>
+              <span className="text-xs text-emerald-500/70">• scan.crestchain.pro</span>
+            </div>
+
             <div className="space-y-4">
-              <div className="bg-primary/5 p-4 rounded-lg border border-primary/10">
-                <Label className="text-xs uppercase tracking-wider text-primary font-semibold mb-2 block">Token ID (NFT)</Label>
-                <p className="font-mono text-sm font-bold bg-background/50 px-3 py-2 rounded border border-primary/10">
-                  {data.blockchain_data.tokenId}
+              <div className="bg-slate-800/50 p-4 rounded-lg border border-emerald-500/20 backdrop-blur">
+                <Label className="text-xs uppercase tracking-wider text-emerald-400 font-semibold mb-2 block">🎫 Token ID (NFT)</Label>
+                <p className="font-mono text-lg font-bold text-white bg-slate-900/50 px-3 py-2 rounded border border-emerald-500/10">
+                  #{data.blockchain_data.tokenId}
                 </p>
               </div>
 
-              <div className="bg-primary/5 p-4 rounded-lg border border-primary/10">
-                <Label className="text-xs uppercase tracking-wider text-primary font-semibold mb-2 block">Smart Contract</Label>
+              <div className="bg-slate-800/50 p-4 rounded-lg border border-emerald-500/20 backdrop-blur">
+                <Label className="text-xs uppercase tracking-wider text-emerald-400 font-semibold mb-2 block">📜 Smart Contract</Label>
                 <div className="flex items-center space-x-2">
-                  <p className="font-mono text-xs font-medium bg-background/50 px-3 py-2 rounded border border-primary/10 flex-1 break-all">
+                  <p className="font-mono text-xs font-medium text-emerald-300 bg-slate-900/50 px-3 py-2 rounded border border-emerald-500/10 flex-1 break-all">
                     {data.blockchain_data.contractAddress}
                   </p>
                   {data.blockchain_data.contractAddress !== 'Pendiente' && (
                     <>
-                      <Button variant="ghost" size="sm" onClick={handleCopyContract} className="hover:bg-primary/10">
-                        <Copy className="w-4 h-4 text-primary" />
+                      <Button variant="ghost" size="sm" onClick={handleCopyContract} className="hover:bg-emerald-500/20 text-emerald-400">
+                        <Copy className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={openExplorerAddress} className="hover:bg-primary/10">
-                        <ExternalLink className="w-4 h-4 text-primary" />
+                      <Button variant="ghost" size="sm" onClick={openExplorerAddress} className="hover:bg-emerald-500/20 text-emerald-400">
+                        <ExternalLink className="w-4 h-4" />
                       </Button>
                     </>
                   )}
                 </div>
               </div>
 
-              <div className="bg-primary/5 p-4 rounded-lg border border-primary/10">
-                <Label className="text-xs uppercase tracking-wider text-primary font-semibold mb-2 block">Transaction Hash</Label>
+              <div className="bg-slate-800/50 p-4 rounded-lg border border-emerald-500/20 backdrop-blur">
+                <Label className="text-xs uppercase tracking-wider text-emerald-400 font-semibold mb-2 block">🔗 Transaction Hash</Label>
                 <div className="flex items-center space-x-2">
-                  <p className="font-mono text-xs font-medium bg-background/50 px-3 py-2 rounded border border-primary/10 flex-1 break-all">
+                  <p className="font-mono text-xs font-medium text-emerald-300 bg-slate-900/50 px-3 py-2 rounded border border-emerald-500/10 flex-1 break-all">
                     {data.blockchain_data.transactionHash}
                   </p>
                   {data.blockchain_data.transactionHash !== 'Pendiente' && (
                     <>
-                      <Button variant="ghost" size="sm" onClick={handleCopyTxHash} className="hover:bg-primary/10">
-                        <Copy className="w-4 h-4 text-primary" />
+                      <Button variant="ghost" size="sm" onClick={handleCopyTxHash} className="hover:bg-emerald-500/20 text-emerald-400">
+                        <Copy className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={openExplorer} className="hover:bg-primary/10">
-                        <ExternalLink className="w-4 h-4 text-primary" />
+                      <Button variant="ghost" size="sm" onClick={openExplorer} className="hover:bg-emerald-500/20 text-emerald-400">
+                        <ExternalLink className="w-4 h-4" />
                       </Button>
                     </>
                   )}
                 </div>
               </div>
 
-              <div className="bg-primary/5 p-4 rounded-lg border border-primary/10">
-                <Label className="text-xs uppercase tracking-wider text-primary font-semibold mb-2 block">Block Number</Label>
-                <p className="font-mono text-sm font-bold bg-background/50 px-3 py-2 rounded border border-primary/10">
-                  #{data.blockchain_data.blockNumber}
-                </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-slate-800/50 p-4 rounded-lg border border-emerald-500/20 backdrop-blur">
+                  <Label className="text-xs uppercase tracking-wider text-emerald-400 font-semibold mb-2 block">⛓️ Block</Label>
+                  <p className="font-mono text-lg font-bold text-white">
+                    #{data.blockchain_data.blockNumber}
+                  </p>
+                </div>
+                <div className="bg-slate-800/50 p-4 rounded-lg border border-emerald-500/20 backdrop-blur">
+                  <Label className="text-xs uppercase tracking-wider text-emerald-400 font-semibold mb-2 block">⚡ Gas Token</Label>
+                  <p className="font-mono text-lg font-bold text-white">
+                    TCT
+                  </p>
+                </div>
               </div>
             </div>
 

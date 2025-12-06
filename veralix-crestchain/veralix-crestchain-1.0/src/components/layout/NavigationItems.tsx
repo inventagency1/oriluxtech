@@ -60,6 +60,7 @@ export const getNavigationItems = (role: string | null, isAdmin: boolean, isJoye
       label: "Administración",
       items: [
         { title: "Usuarios", url: "/admin/users", icon: Users, permission: "manage_users" },
+        { title: "Todos los Certificados", url: "/admin/all-certificates", icon: Shield, permission: "manage_system" },
         { title: "Configuración", url: "/admin/settings", icon: Settings, permission: "manage_system" },
         { title: "Paquetes", url: "/admin/certificate-bundles", icon: CreditCard },
         { title: "Auditoría", url: "/auditoria", icon: FileText, permission: "view_audit_logs" },
