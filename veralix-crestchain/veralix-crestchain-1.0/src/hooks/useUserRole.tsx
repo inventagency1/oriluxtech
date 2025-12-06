@@ -59,25 +59,31 @@ export function useUserRole() {
         } else {
           const userRole = data?.role || null;
           
-          // SIEMPRE verificar si hay un rol pendiente del registro
-          // Esto es necesario porque el trigger de Supabase asigna 'cliente' por defecto
-          const pendingRole = localStorage.getItem('pendingUserRole');
-          if (pendingRole && (pendingRole === 'joyero' || pendingRole === 'cliente')) {
-            // Solo actualizar si el rol pendiente es diferente al actual
-            if (pendingRole !== userRole) {
-              console.log('🔐 useUserRole: Found pending role from registration:', pendingRole, '(current:', userRole, ')');
-              // Asignar el rol pendiente automáticamente
-              await assignPendingRole(user.id, pendingRole);
-              return; // El rol se actualizará después de asignarlo
-            } else {
-              // El rol ya es correcto, limpiar localStorage
-              console.log('🔐 useUserRole: Pending role matches current role, cleaning up');
-              localStorage.removeItem('pendingUserRole');
+          // Si el usuario ya es admin, NO sobrescribir con pendingRole
+          if (userRole === 'admin') {
+            console.log('🔐 useUserRole: User is ADMIN, skipping pendingRole check');
+            localStorage.removeItem('pendingUserRole'); // Limpiar cualquier pendingRole
+            setRole('admin');
+          } else {
+            // Solo verificar pendingRole si NO es admin
+            const pendingRole = localStorage.getItem('pendingUserRole');
+            if (pendingRole && (pendingRole === 'joyero' || pendingRole === 'cliente')) {
+              // Solo actualizar si el rol pendiente es diferente al actual
+              if (pendingRole !== userRole) {
+                console.log('🔐 useUserRole: Found pending role from registration:', pendingRole, '(current:', userRole, ')');
+                // Asignar el rol pendiente automáticamente
+                await assignPendingRole(user.id, pendingRole);
+                return; // El rol se actualizará después de asignarlo
+              } else {
+                // El rol ya es correcto, limpiar localStorage
+                console.log('🔐 useUserRole: Pending role matches current role, cleaning up');
+                localStorage.removeItem('pendingUserRole');
+              }
             }
+            
+            console.log('useUserRole: Setting role to:', userRole);
+            setRole(userRole);
           }
-          
-          console.log('useUserRole: Setting role to:', userRole);
-          setRole(userRole);
         }
       } catch (error) {
         console.error('Error fetching user role:', error);

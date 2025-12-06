@@ -128,35 +128,43 @@ const adminNavigation: NavSection[] = [
     ]
   },
   {
-    title: "Gestión",
+    title: "Usuarios y Certificados",
     items: [
       { title: "Usuarios", href: "/admin/users", icon: Users },
       { title: "Asignar Paquetes", href: "/admin/assign-packages", icon: UserPlus },
       { title: "Todos los Certificados", href: "/admin/all-certificates", icon: Shield },
-      { title: "Paquetes", href: "/admin/certificate-bundles", icon: Package },
-      { title: "Auditoría", href: "/auditoria", icon: FileText },
+      { title: "Paquetes de Certificados", href: "/admin/certificate-bundles", icon: Package },
+    ]
+  },
+  {
+    title: "Joyería",
+    items: [
+      { title: "Mis Joyas", href: "/mis-joyas", icon: Gem },
+      { title: "Nueva Joya", href: "/nueva-joya", icon: Sparkles },
+      { title: "Marketplace", href: "/marketplace", icon: Store },
     ]
   },
   {
     title: "Finanzas",
     items: [
       { title: "Pagos Wompi", href: "/admin/wompi-monitoring", icon: CreditCard },
+      { title: "Pagos QR", href: "/admin/pagos-qr", icon: CreditCard },
       { title: "Precios", href: "/pricing", icon: Tag },
     ]
   },
   {
     title: "Sistema",
     items: [
-      { title: "Airdrops", href: "/airdrop", icon: Gift },
-      { title: "Marketplace", href: "/marketplace", icon: Store },
       { title: "Configuración", href: "/admin/settings", icon: Settings },
+      { title: "Auditoría", href: "/auditoria", icon: FileText },
+      { title: "Airdrops", href: "/airdrop", icon: Gift },
+      { title: "Analytics", href: "/analytics", icon: BarChart3 },
     ]
   },
   {
     title: "Desarrollo",
     items: [
       { title: "Email Testing", href: "/email-testing", icon: Mail },
-      { title: "BSC Testing", href: "/bsc-testing", icon: Code },
       { title: "Wompi Diagnóstico", href: "/wompi-diagnostics", icon: Activity },
       { title: "Orilux Status", href: "/orilux-status", icon: Activity },
     ]
