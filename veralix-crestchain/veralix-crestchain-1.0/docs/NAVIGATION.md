@@ -256,6 +256,6 @@ La navegación lateral se organiza en grupos según el rol:
 ## Contacto
 
 Si encuentras links rotos o tienes sugerencias para mejorar la navegación:
-- Email: soporte@veralix.com
+- Email: soporte@veralix.io
 - Crear issue en el repositorio
 - Contactar al equipo de desarrollo

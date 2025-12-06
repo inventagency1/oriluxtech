@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -10,7 +10,6 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useOnboarding } from "@/hooks/useOnboarding";
-import { useNavigate } from "react-router-dom";
 import { JoyeroDashboard } from "@/components/JoyeroDashboard";
 import { ClienteDashboard } from "@/components/ClienteDashboard";
 import { AdminDashboard } from "@/components/AdminDashboard";
@@ -46,21 +45,10 @@ const Dashboard = () => {
     clearSimulatedRole
   } = useUserRole();
   const { toast } = useToast();
-  const navigate = useNavigate();
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
   const { showOnboarding, completeOnboarding, resetOnboarding } = useOnboarding();
 
-  // Manejar redirección post-registro
-  useEffect(() => {
-    if (!roleLoading && role) {
-      const postRegisterRedirect = localStorage.getItem('postRegisterRedirect');
-      if (postRegisterRedirect) {
-        localStorage.removeItem('postRegisterRedirect');
-        console.log('🔄 Redirecting to post-register page:', postRegisterRedirect);
-        navigate(postRegisterRedirect);
-      }
-    }
-  }, [role, roleLoading, navigate]);
+  // La redirección post-registro ahora se maneja en useUserRole
 
   const handleRoleChange = async (newRole: 'joyero' | 'cliente' | 'admin') => {
     try {

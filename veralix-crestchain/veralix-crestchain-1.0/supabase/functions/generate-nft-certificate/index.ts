@@ -19,9 +19,15 @@ const IPFS_GATEWAYS = [
   'https://dweb.link/ipfs/',
   'https://w3s.link/ipfs/'
 ];
-const DEFAULT_BLOCKCHAIN_NAME = Deno.env.get('PUBLIC_BLOCKCHAIN_NAME') || 'BSC Mainnet'
+const DEFAULT_BLOCKCHAIN_NAME = Deno.env.get('PUBLIC_BLOCKCHAIN_NAME') || 'CrestChain'
 
-// BSC Mainnet Configuration
+// CrestChain Configuration (reemplaza BSC por falta de fondos)
+const CRESTCHAIN_RPC_URL = Deno.env.get('CRESTCHAIN_RPC_URL') || 'https://rpc.crestchain.pro'
+const CRESTCHAIN_CONTRACT_ADDRESS = Deno.env.get('CRESTCHAIN_CONTRACT_ADDRESS') || '0x419C2C5189A357914469CEBCB2d7c8c7A1bCD1Ee'
+const CRESTCHAIN_EXPLORER = 'https://scan.crestchain.pro'
+const CRESTCHAIN_CHAIN_ID = 85523
+
+// BSC como fallback (sin fondos actualmente)
 const BSC_RPC_URLS = [
   'https://bsc-dataseed.binance.org',
   'https://bsc-dataseed1.binance.org',
@@ -31,18 +37,13 @@ const BSC_RPC_URLS = [
 const BSC_CONTRACT_ADDRESS = Deno.env.get('VERALIX_CONTRACT_ADDRESS') || '0x5aDcEEf785FD21b65986328ca1e6DE0C973eC423'
 const BSC_EXPLORER = 'https://bscscan.com'
 
-// ABI del contrato VeralixMasterRegistry en BSC
-const BSC_CONTRACT_ABI = [
+// ABI del contrato VeralixCertificate en CrestChain (nuevo contrato simplificado)
+const CRESTCHAIN_CONTRACT_ABI = [
   {
     inputs: [
-      { name: "certificateNumber", type: "string" },
-      { name: "jewelryType", type: "string" },
-      { name: "description", type: "string" },
-      { name: "imageHash", type: "string" },
-      { name: "metadataURI", type: "string" },
-      { name: "owner", type: "address" },
-      { name: "appraisalValue", type: "uint256" },
-      { name: "appraisalCurrency", type: "string" }
+      { name: "to", type: "address" },
+      { name: "certificateId", type: "string" },
+      { name: "metadataURI", type: "string" }
     ],
     name: "createCertificate",
     outputs: [{ name: "", type: "uint256" }],
@@ -50,30 +51,16 @@ const BSC_CONTRACT_ABI = [
     type: "function"
   },
   {
-    inputs: [{ name: "tokenId", type: "uint256" }],
-    name: "getCertificate",
-    outputs: [
-      {
-        components: [
-          { name: "tokenId", type: "uint256" },
-          { name: "certificateNumber", type: "string" },
-          { name: "jewelryType", type: "string" },
-          { name: "description", type: "string" },
-          { name: "imageHash", type: "string" },
-          { name: "metadataURI", type: "string" },
-          { name: "currentOwner", type: "address" },
-          { name: "jewelryStore", type: "address" },
-          { name: "creationDate", type: "uint256" },
-          { name: "lastUpdate", type: "uint256" },
-          { name: "isActive", type: "bool" },
-          { name: "isTransferable", type: "bool" },
-          { name: "appraisalValue", type: "uint256" },
-          { name: "appraisalCurrency", type: "string" }
-        ],
-        name: "",
-        type: "tuple"
-      }
-    ],
+    inputs: [{ name: "certificateId", type: "string" }],
+    name: "getTokenByCertificateId",
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [{ name: "certificateId", type: "string" }],
+    name: "certificateExists",
+    outputs: [{ name: "", type: "bool" }],
     stateMutability: "view",
     type: "function"
   },
@@ -83,8 +70,23 @@ const BSC_CONTRACT_ABI = [
     outputs: [{ name: "", type: "uint256" }],
     stateMutability: "view",
     type: "function"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: "tokenId", type: "uint256" },
+      { indexed: false, name: "certificateId", type: "string" },
+      { indexed: true, name: "owner", type: "address" },
+      { indexed: false, name: "metadataURI", type: "string" },
+      { indexed: false, name: "timestamp", type: "uint256" }
+    ],
+    name: "CertificateCreated",
+    type: "event"
   }
 ]
+
+// Legacy BSC ABI (for reference, not used)
+const BSC_CONTRACT_ABI = CRESTCHAIN_CONTRACT_ABI
 
 // Helper function to upload JSON to Pinata IPFS with retry logic
 async function uploadJSONToPinata(data: any, filename: string, maxRetries = 3): Promise<string> {
@@ -497,7 +499,7 @@ serve(async (req: Request) => {
   }
 
   try {
-    log('🚀 Iniciando generación de certificado NFT v6 (Multi-Blockchain)...')
+    log('🚀 Iniciando generación de certificado NFT v8 - FK REMOVED (Multi-Blockchain)...')
     
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -646,36 +648,32 @@ serve(async (req: Request) => {
       oriluxSuccess = true
     }
 
-    // ============= 2. MINT EN BSC MAINNET =============
-    // Variables para BSC
-    let bscTxHash: string | null = null
-    let bscTokenId: string | null = null
-    let bscBlockNumber: string | null = null
-    let bscVerificationUrl: string | null = null
-    let bscWalletAddress: string | null = null
-    let bscSuccess = false
+    // ============= 2. MINT EN CRESTCHAIN (reemplaza BSC por falta de fondos) =============
+    // Variables para CrestChain
+    let crestchainTxHash: string | null = null
+    let crestchainTokenId: string | null = null
+    let crestchainBlockNumber: string | null = null
+    let crestchainVerificationUrl: string | null = null
+    let crestchainWalletAddress: string | null = null
+    let crestchainSuccess = false
 
     if (SYSTEM_PRIVATE_KEY) {
       try {
-        log('📝 [BSC] Intentando mint en BSC Mainnet...')
+        log('📝 [CRESTCHAIN] Intentando mint en CrestChain...')
         
         const { ethers } = await import('https://esm.sh/ethers@6.7.0')
         
-        // Intentar con múltiples RPCs
-        let provider = null
-        for (const rpcUrl of BSC_RPC_URLS) {
-          try {
-            provider = new ethers.JsonRpcProvider(rpcUrl)
-            await provider.getBlockNumber() // Test connection
-            log(`✅ [BSC] Conectado a RPC: ${rpcUrl}`)
-            break
-          } catch (e) {
-            log(`⚠️ [BSC] RPC ${rpcUrl} no disponible, intentando siguiente...`)
-          }
-        }
+        // Conectar a CrestChain
+        const provider = new ethers.JsonRpcProvider(CRESTCHAIN_RPC_URL, {
+          chainId: CRESTCHAIN_CHAIN_ID,
+          name: 'crestchain'
+        })
         
-        if (!provider) {
-          throw new Error('No se pudo conectar a ningún RPC de BSC')
+        try {
+          const blockNumber = await provider.getBlockNumber()
+          log(`✅ [CRESTCHAIN] Conectado a RPC: ${CRESTCHAIN_RPC_URL}, Block: ${blockNumber}`)
+        } catch (e) {
+          throw new Error(`No se pudo conectar a CrestChain RPC: ${e}`)
         }
         
         // Asegurar que la private key tenga el prefijo 0x
@@ -683,122 +681,151 @@ serve(async (req: Request) => {
           ? SYSTEM_PRIVATE_KEY 
           : `0x${SYSTEM_PRIVATE_KEY}`
         
-        // Verificar balance de BNB para gas
+        // Verificar balance para gas
         const wallet = new ethers.Wallet(privateKey, provider)
         const balance = await provider.getBalance(wallet.address)
-        const balanceInBNB = parseFloat(ethers.formatEther(balance))
+        const balanceInCREST = parseFloat(ethers.formatEther(balance))
         
-        log(`💰 [BSC] Balance BNB: ${balanceInBNB}`)
-        log(`📜 [BSC] Contract Address: ${BSC_CONTRACT_ADDRESS}`)
-        log(`👛 [BSC] Wallet Address: ${wallet.address}`)
+        log(`💰 [CRESTCHAIN] Balance: ${balanceInCREST}`)
+        log(`📜 [CRESTCHAIN] Contract Address: ${CRESTCHAIN_CONTRACT_ADDRESS}`)
+        log(`👛 [CRESTCHAIN] Wallet Address: ${wallet.address}`)
         
-        if (balanceInBNB > 0.001) { // Mínimo para gas
-          const contract = new ethers.Contract(BSC_CONTRACT_ADDRESS, BSC_CONTRACT_ABI, wallet)
+        // CrestChain tiene gas muy bajo, 0.0001 es suficiente
+        if (balanceInCREST > 0.0001) {
+          const contract = new ethers.Contract(CRESTCHAIN_CONTRACT_ADDRESS, CRESTCHAIN_CONTRACT_ABI, wallet)
           
-          // Preparar datos para el mint
-          const ownerAddr = ownerAddress || wallet.address
-          const appraisalValue = BigInt(Math.floor((jewelryData.sale_price || 0) * 100)) // En centavos
-          
-          log('📝 [BSC] Preparando transacción...')
-          log('   Certificate ID:', certificateId)
-          log('   Jewelry Type:', jewelryData.type || 'Jewelry')
-          log('   Owner:', ownerAddr)
-          log('   Appraisal Value:', appraisalValue.toString())
-          
-          // Llamar createCertificate con todos los parámetros
-          const tx = await contract.createCertificate(
-            certificateId,                                    // certificateNumber
-            jewelryData.type || 'Jewelry',                    // jewelryType
-            jewelryData.description || jewelryData.name || '', // description
-            '',                                               // imageHash (se actualizará después)
-            `ipfs://veralix/${certificateId}`,               // metadataURI
-            ownerAddr,                                        // owner
-            appraisalValue,                                   // appraisalValue
-            'COP'                                             // appraisalCurrency
-          )
-          
-          log('⏳ [BSC] TX enviada:', tx.hash)
-          log(`🔗 [BSC] Ver en BscScan: ${BSC_EXPLORER}/tx/${tx.hash}`)
-          
-          const receipt = await tx.wait(1) // Esperar 1 confirmación
-          
-          // Extraer tokenId del evento CertificateCreated
-          let tokenIdFromEvent = certificateId
-          if (receipt?.logs && receipt.logs.length > 0) {
-            try {
-              const iface = new ethers.Interface(BSC_CONTRACT_ABI)
-              for (const log of receipt.logs) {
-                try {
-                  const parsed = iface.parseLog({ topics: log.topics as string[], data: log.data })
-                  if (parsed && parsed.name === 'CertificateCreated') {
-                    tokenIdFromEvent = parsed.args[0].toString()
-                    break
-                  }
-                } catch (e) {
-                  // Log no es del evento que buscamos
-                }
-              }
-            } catch (e) {
-              log('⚠️ [BSC] No se pudo parsear evento, usando certificateId')
+          // ✅ VERIFICAR SI YA EXISTE EN BLOCKCHAIN (evita doble gasto de TCT)
+          try {
+            log('🔍 [CRESTCHAIN] Verificando si certificado existe...')
+            const alreadyExists = await contract.certificateExists(certificateId)
+            log('🔍 [CRESTCHAIN] Resultado certificateExists:', alreadyExists)
+            if (alreadyExists) {
+              log('⚠️ [CRESTCHAIN] Certificado ya existe en blockchain, recuperando datos...')
+              const existingTokenId = await contract.getTokenByCertificateId(certificateId)
+              crestchainTxHash = `recovered-${certificateId}`
+              crestchainTokenId = existingTokenId.toString()
+              crestchainBlockNumber = 'recovered'
+              crestchainVerificationUrl = `${CRESTCHAIN_EXPLORER}/token/${CRESTCHAIN_CONTRACT_ADDRESS}?a=${existingTokenId}`
+              crestchainWalletAddress = wallet.address
+              crestchainSuccess = true
+              log('✅ [CRESTCHAIN] Datos recuperados sin gastar TCT!')
+              // Saltar el minteo, ya existe
             }
+          } catch (checkError: any) {
+            log('📝 [CRESTCHAIN] Verificación falló o certificado no existe:', checkError?.message || 'unknown')
+            // Continuar con el minteo
           }
           
-          bscTxHash = tx.hash
-          bscTokenId = tokenIdFromEvent
-          bscBlockNumber = receipt?.blockNumber ? String(receipt.blockNumber) : 'confirmed'
-          bscVerificationUrl = `${BSC_EXPLORER}/tx/${tx.hash}`
-          bscWalletAddress = wallet.address
-          bscSuccess = true
+          // Solo mintear si no existe
+          if (!crestchainSuccess) {
+            // Preparar datos para el mint (nuevo contrato simplificado)
+            const ownerAddr = ownerAddress || wallet.address
+            const metadataURI = `ipfs://veralix/${certificateId}`
+            
+            log('📝 [CRESTCHAIN] Preparando transacción...')
+            log('   Certificate ID:', certificateId)
+            log('   Owner:', ownerAddr)
+            log('   Metadata URI:', metadataURI)
+            
+            // Llamar createCertificate con 3 parámetros (nuevo contrato)
+            const tx = await contract.createCertificate(
+              ownerAddr,      // to: address del dueño
+              certificateId,  // certificateId: ID único del certificado
+              metadataURI     // metadataURI: URI de los metadatos en IPFS
+            )
           
-          log('✅ [BSC] NFT minteado exitosamente!')
-          log(`✅ [BSC] TX Hash: ${bscTxHash}`)
-          log(`✅ [BSC] Token ID: ${bscTokenId}`)
-          log(`✅ [BSC] Block: ${bscBlockNumber}`)
-          log(`✅ [BSC] Contract: ${BSC_CONTRACT_ADDRESS}`)
-          log(`✅ [BSC] Wallet: ${bscWalletAddress}`)
+            log('⏳ [CRESTCHAIN] TX enviada:', tx.hash)
+            log(`🔗 [CRESTCHAIN] Ver en Explorer: ${CRESTCHAIN_EXPLORER}/tx/${tx.hash}`)
+            
+            const receipt = await tx.wait(1) // Esperar 1 confirmación
+            
+            // Extraer tokenId del evento CertificateCreated
+            let tokenIdFromEvent = certificateId
+            if (receipt?.logs && receipt.logs.length > 0) {
+              try {
+                const iface = new ethers.Interface(CRESTCHAIN_CONTRACT_ABI)
+                for (const eventLog of receipt.logs) {
+                  try {
+                    const parsed = iface.parseLog({ topics: eventLog.topics as string[], data: eventLog.data })
+                    if (parsed && parsed.name === 'CertificateCreated') {
+                      tokenIdFromEvent = parsed.args[0].toString() // tokenId is first arg
+                      log('✅ [CRESTCHAIN] Token ID extraído del evento:', tokenIdFromEvent)
+                      break
+                    }
+                  } catch (e) {
+                    // Log no es del evento que buscamos
+                  }
+                }
+              } catch (e) {
+                log('⚠️ [CRESTCHAIN] No se pudo parsear evento, usando certificateId')
+              }
+            }
+            
+            crestchainTxHash = tx.hash
+            crestchainTokenId = tokenIdFromEvent
+            crestchainBlockNumber = receipt?.blockNumber ? String(receipt.blockNumber) : 'confirmed'
+            crestchainVerificationUrl = `${CRESTCHAIN_EXPLORER}/tx/${tx.hash}`
+            crestchainWalletAddress = wallet.address
+            crestchainSuccess = true
+            
+            log('✅ [CRESTCHAIN] NFT minteado exitosamente!')
+            log(`✅ [CRESTCHAIN] TX Hash: ${crestchainTxHash}`)
+            log(`✅ [CRESTCHAIN] Token ID: ${crestchainTokenId}`)
+            log(`✅ [CRESTCHAIN] Block: ${crestchainBlockNumber}`)
+            log(`✅ [CRESTCHAIN] Contract: ${CRESTCHAIN_CONTRACT_ADDRESS}`)
+            log(`✅ [CRESTCHAIN] Wallet: ${crestchainWalletAddress}`)
+          } // Cierre del if (!crestchainSuccess)
         } else {
-          log('⚠️ [BSC] Sin fondos BNB suficientes para gas')
+          log('⚠️ [CRESTCHAIN] Sin fondos suficientes para gas')
           // Generar hash de reserva
-          const hashData = `BSC-${certificateId}-${Date.now()}`
+          const hashData = `CREST-${certificateId}-${Date.now()}`
           const encoder = new TextEncoder()
           const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(hashData))
           const hashArray = Array.from(new Uint8Array(hashBuffer))
-          bscTxHash = '0x' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-          bscTokenId = certificateId
-          bscBlockNumber = 'pending-no-funds'
-          bscVerificationUrl = `${BSC_EXPLORER}/tx/${bscTxHash}`
-          bscSuccess = false
+          crestchainTxHash = '0x' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+          crestchainTokenId = certificateId
+          crestchainBlockNumber = 'pending-no-funds'
+          crestchainVerificationUrl = `${CRESTCHAIN_EXPLORER}/tx/${crestchainTxHash}`
+          crestchainSuccess = false
         }
-      } catch (bscError: any) {
-        log('⚠️ [BSC] Error:', JSON.stringify({
-          message: bscError.message,
-          code: bscError.code,
-          reason: bscError.reason
+      } catch (crestchainError: any) {
+        log('⚠️ [CRESTCHAIN] Error:', JSON.stringify({
+          message: crestchainError.message,
+          code: crestchainError.code,
+          reason: crestchainError.reason
         }))
         // Generar hash de reserva - NO bloquear el proceso
-        const hashData = `BSC-${certificateId}-${Date.now()}`
+        const hashData = `CREST-${certificateId}-${Date.now()}`
         const encoder = new TextEncoder()
         const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(hashData))
         const hashArray = Array.from(new Uint8Array(hashBuffer))
-        bscTxHash = '0x' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-        bscTokenId = certificateId
-        bscBlockNumber = 'error'
-        bscVerificationUrl = `${BSC_EXPLORER}/tx/${bscTxHash}`
-        bscSuccess = false
-        log('⚠️ [BSC] Usando hash de reserva, certificado continuará sin mint real')
+        crestchainTxHash = '0x' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+        crestchainTokenId = certificateId
+        crestchainBlockNumber = 'error'
+        crestchainVerificationUrl = `${CRESTCHAIN_EXPLORER}/tx/${crestchainTxHash}`
+        crestchainSuccess = false
+        log('⚠️ [CRESTCHAIN] Usando hash de reserva, certificado continuará sin mint real')
       }
     } else {
-      log('⚠️ [BSC] SYSTEM_PRIVATE_KEY no configurado')
+      log('⚠️ [CRESTCHAIN] SYSTEM_PRIVATE_KEY no configurado')
       // Generar hash de reserva
-      const hashData = `BSC-${certificateId}-${Date.now()}`
+      const hashData = `CREST-${certificateId}-${Date.now()}`
       const encoder = new TextEncoder()
       const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(hashData))
       const hashArray = Array.from(new Uint8Array(hashBuffer))
-      bscTxHash = '0x' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-      bscTokenId = certificateId
-      bscBlockNumber = 'pending'
-      bscVerificationUrl = `${BSC_EXPLORER}/tx/${bscTxHash}`
+      crestchainTxHash = '0x' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+      crestchainTokenId = certificateId
+      crestchainBlockNumber = 'pending'
+      crestchainVerificationUrl = `${CRESTCHAIN_EXPLORER}/tx/${crestchainTxHash}`
     }
+    
+    // Variables de compatibilidad BSC (ahora apuntan a CrestChain)
+    const bscTxHash = crestchainTxHash
+    const bscTokenId = crestchainTokenId
+    const bscBlockNumber = crestchainBlockNumber
+    const bscVerificationUrl = crestchainVerificationUrl
+    const bscWalletAddress = crestchainWalletAddress
+    const bscSuccess = crestchainSuccess
     
     // Asegurar que todas las variables de Orilux tengan valores por defecto
     if (!oriluxTxHash) {
@@ -819,12 +846,12 @@ serve(async (req: Request) => {
 
     log('🔗 DUAL-MINT completado:', { 
       oriluxchain: { success: oriluxSuccess, txHash: oriluxTxHash },
-      bsc_mainnet: { 
-        success: bscSuccess, 
-        txHash: bscTxHash, 
-        contract: BSC_CONTRACT_ADDRESS,
-        wallet: bscWalletAddress,
-        block: bscBlockNumber
+      crestchain: { 
+        success: crestchainSuccess, 
+        txHash: crestchainTxHash, 
+        contract: CRESTCHAIN_CONTRACT_ADDRESS,
+        wallet: crestchainWalletAddress,
+        block: crestchainBlockNumber
       }
     })
 
@@ -857,11 +884,11 @@ serve(async (req: Request) => {
         { trait_type: 'Origen', value: jewelryData.origin || 'N/A' },
         { trait_type: 'Artesano', value: jewelryData.craftsman || 'N/A' },
         { trait_type: 'Certificado ID', value: certificateId },
-        // BSC Mainnet Data (REAL)
-        { trait_type: 'BSC Contract', value: BSC_CONTRACT_ADDRESS },
-        { trait_type: 'BSC TX Hash', value: bscTxHash || 'Pending' },
-        { trait_type: 'BSC Block', value: bscBlockNumber || 'Pending' },
-        { trait_type: 'BSC Network', value: 'BSC Mainnet (Chain ID: 56)' },
+        // CrestChain Data (reemplaza BSC)
+        { trait_type: 'CrestChain Contract', value: CRESTCHAIN_CONTRACT_ADDRESS },
+        { trait_type: 'CrestChain TX Hash', value: crestchainTxHash || 'Pending' },
+        { trait_type: 'CrestChain Block', value: crestchainBlockNumber || 'Pending' },
+        { trait_type: 'CrestChain Network', value: `CrestChain (Chain ID: ${CRESTCHAIN_CHAIN_ID})` },
         // Oriluxchain Data
         { trait_type: 'Orilux TX Hash', value: oriluxTxHash || 'Pending' }
       ],
@@ -873,16 +900,16 @@ serve(async (req: Request) => {
           blockNumber: oriluxBlockNumber,
           verificationUrl: oriluxVerificationUrl
         },
-        // BSC Mainnet (DATOS REALES)
-        bscMainnet: {
-          txHash: bscTxHash,
-          tokenId: bscTokenId,
-          blockNumber: bscBlockNumber,
-          contractAddress: BSC_CONTRACT_ADDRESS,
-          walletAddress: bscWalletAddress,
-          explorerUrl: bscVerificationUrl,
-          chainId: 56,
-          network: 'BSC Mainnet'
+        // CrestChain (reemplaza BSC Mainnet)
+        crestchain: {
+          txHash: crestchainTxHash,
+          tokenId: crestchainTokenId,
+          blockNumber: crestchainBlockNumber,
+          contractAddress: CRESTCHAIN_CONTRACT_ADDRESS,
+          walletAddress: crestchainWalletAddress,
+          explorerUrl: crestchainVerificationUrl,
+          chainId: CRESTCHAIN_CHAIN_ID,
+          network: 'CrestChain'
         },
         verificationUrl,
         dualBlockchain: true
@@ -897,18 +924,18 @@ serve(async (req: Request) => {
     // Generate certificate HTML with DUAL BLOCKCHAIN hashes
     console.log('📄 Generando HTML del certificado con hashes duales...')
     
-    // Preparar datos de BSC para el certificado
+    // Preparar datos de CrestChain para el certificado (usa interfaz BSCData por compatibilidad)
     const bscDataForCertificate: BSCData = {
-      txHash: bscTxHash,
-      tokenId: bscTokenId,
-      blockNumber: bscBlockNumber,
-      contractAddress: BSC_CONTRACT_ADDRESS,
-      walletAddress: bscWalletAddress,
-      explorerUrl: bscVerificationUrl,
-      success: bscSuccess
+      txHash: crestchainTxHash,
+      tokenId: crestchainTokenId,
+      blockNumber: crestchainBlockNumber,
+      contractAddress: CRESTCHAIN_CONTRACT_ADDRESS,
+      walletAddress: crestchainWalletAddress,
+      explorerUrl: crestchainVerificationUrl,
+      success: crestchainSuccess
     }
     
-    console.log('📋 BSC Data para certificado:', bscDataForCertificate)
+    console.log('📋 CrestChain Data para certificado:', bscDataForCertificate)
     
     const { blob: htmlBlob, html: certificateHTMLContent } = await generateCertificateHTML(
       jewelryData,
@@ -931,52 +958,56 @@ serve(async (req: Request) => {
     // Generate social image
     const socialImageUri = await generateSocialImage(jewelryData.name, certificateId)
 
-    // Convertir block numbers a integers (o null si no son números válidos)
-    const parseBlockNumber = (bn: string | null): number | null => {
+    // block_number es TEXT en la BD, alddara_block_number es INTEGER
+    const parseBlockNumberToInt = (bn: string | null): number | null => {
       if (!bn) return null
       const parsed = parseInt(bn, 10)
       return isNaN(parsed) ? null : parsed
     }
+    const parseBlockNumberToText = (bn: string | null): string | null => {
+      if (!bn) return null
+      return bn
+    }
 
-    // Create certificate record in database - DUAL BLOCKCHAIN REAL (Oriluxchain + BSC Mainnet)
+    // Create certificate record in database - DUAL BLOCKCHAIN (Oriluxchain + CrestChain) - FIXED property_id
     const { data: certificateRecord, error: certError } = await supabaseAdmin
       .from('nft_certificates')
       .insert({
         id: crypto.randomUUID(),
         certificate_id: certificateId,
-        jewelry_item_id: jewelryItemId,
+        property_id: jewelryItemId,
         user_id: userId,
         owner_id: userId,
-        // Hash principal: usar BSC si está disponible, sino Orilux
-        transaction_hash: bscTxHash || oriluxTxHash,
-        token_id: bscTokenId || oriluxTokenId,
-        contract_address: BSC_CONTRACT_ADDRESS, // Contrato BSC REAL
-        block_number: parseBlockNumber(bscBlockNumber) || parseBlockNumber(oriluxBlockNumber),
+        // Hash principal: usar CrestChain si está disponible, sino Orilux
+        transaction_hash: crestchainTxHash || oriluxTxHash,
+        token_id: crestchainTokenId || oriluxTokenId,
+        contract_address: CRESTCHAIN_CONTRACT_ADDRESS, // Contrato CrestChain
+        block_number: parseBlockNumberToText(crestchainBlockNumber) || parseBlockNumberToText(oriluxBlockNumber),
         metadata_uri: metadataUri,
         certificate_pdf_url: certificateHtmlUri,
         qr_code_url: await generateQRCode(verificationUrl),
         social_image_url: socialImageUri,
         verification_url: verificationUrl,
         certificate_view_url: verificationUrl,
-        blockchain_verification_url: bscVerificationUrl || oriluxVerificationUrl,
-        is_verified: bscSuccess || oriluxSuccess,
-        blockchain_network: 'DUAL', // Dual-blockchain (Orilux + BSC)
+        blockchain_verification_url: crestchainVerificationUrl || oriluxVerificationUrl,
+        is_verified: crestchainSuccess || oriluxSuccess,
+        blockchain_network: 'DUAL', // Dual-blockchain (Alddara + CrestChain)
         verification_date: new Date().toISOString(),
-        dual_verification: oriluxSuccess && bscSuccess, // True si ambas exitosas
-        // Datos de Oriluxchain
-        orilux_tx_hash: oriluxTxHash,
-        orilux_token_id: oriluxTokenId,
-        orilux_verification_url: oriluxVerificationUrl,
-        orilux_blockchain_status: oriluxSuccess ? 'verified' : 'pending',
-        orilux_blockchain_hash: oriluxTxHash,
-        orilux_block_number: parseBlockNumber(oriluxBlockNumber),
-        // Datos de BSC Mainnet (REALES - reemplaza CrestChain)
-        crestchain_tx_hash: bscTxHash, // Ahora es BSC TX Hash
-        crestchain_token_id: bscTokenId,
-        crestchain_contract_address: BSC_CONTRACT_ADDRESS, // Contrato BSC REAL
-        crestchain_block_number: parseBlockNumber(bscBlockNumber),
-        crestchain_verification_url: bscVerificationUrl,
-        crestchain_network: bscSuccess ? 'BSC_MAINNET' : 'BSC_PENDING'
+        dual_verification: oriluxSuccess && crestchainSuccess, // True si ambas exitosas
+        // Datos de Alddara (antes Oriluxchain)
+        alddara_tx_hash: oriluxTxHash,
+        alddara_token_id: oriluxTokenId,
+        alddara_verification_url: oriluxVerificationUrl,
+        alddara_blockchain_status: oriluxSuccess ? 'verified' : 'pending',
+        alddara_blockchain_hash: oriluxTxHash,
+        alddara_block_number: parseBlockNumberToInt(oriluxBlockNumber),
+        // Datos de CrestChain
+        crestchain_tx_hash: crestchainTxHash,
+        crestchain_token_id: crestchainTokenId,
+        crestchain_contract_address: CRESTCHAIN_CONTRACT_ADDRESS,
+        crestchain_block_number: parseBlockNumberToText(crestchainBlockNumber),
+        crestchain_verification_url: crestchainVerificationUrl,
+        crestchain_network: crestchainSuccess ? 'CRESTCHAIN' : 'CRESTCHAIN_PENDING'
       })
       .select()
       .single()
@@ -1008,7 +1039,7 @@ serve(async (req: Request) => {
       // Continuar sin fallar
     }
 
-    // Update jewelry item status - DUAL BLOCKCHAIN REAL
+    // Update jewelry item status - DUAL BLOCKCHAIN (Oriluxchain + CrestChain)
     const jewelryUpdate: any = { 
       status: 'certified',
       is_certified: true,
@@ -1016,10 +1047,10 @@ serve(async (req: Request) => {
       orilux_certificate_id: certificateId,
       orilux_tx_hash: oriluxTxHash,
       orilux_verification_url: oriluxVerificationUrl,
-      // BSC Mainnet (reemplaza CrestChain)
+      // CrestChain
       crestchain_certificate_id: certificateId,
-      crestchain_tx_hash: bscTxHash,
-      crestchain_verification_url: bscVerificationUrl
+      crestchain_tx_hash: crestchainTxHash,
+      crestchain_verification_url: crestchainVerificationUrl
     }
     
     await supabaseAdmin
@@ -1033,28 +1064,28 @@ serve(async (req: Request) => {
       _resource_type: 'nft_certificate',
       _resource_id: certificateId,
       _details: {
-        jewelry_item_id: jewelryItemId,
+        property_id: jewelryItemId,
         certificate_id: certificateId,
         transaction_hash: transactionHash,
         metadata_uri: metadataUri
       }
     })
 
-    log('✅ Certificado NFT generado exitosamente en Dual-Blockchain (Oriluxchain + BSC Mainnet)!')
+    log('✅ Certificado NFT generado exitosamente en Dual-Blockchain (Oriluxchain + CrestChain)!')
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Certificate generated successfully on Dual-Blockchain (Oriluxchain + BSC Mainnet)',
+        message: 'Certificate generated successfully on Dual-Blockchain (Oriluxchain + CrestChain)',
         certificate: {
           id: certificateRecord.id,
           certificateId,
-          // Hash principal: BSC si está disponible
-          transactionHash: bscTxHash || oriluxTxHash,
-          tokenId: bscTokenId || oriluxTokenId,
+          // Hash principal: CrestChain si está disponible
+          transactionHash: crestchainTxHash || oriluxTxHash,
+          tokenId: crestchainTokenId || oriluxTokenId,
           metadataUri,
           certificateViewUrl: verificationUrl,
-          blockchainVerificationUrl: bscVerificationUrl || oriluxVerificationUrl,
+          blockchainVerificationUrl: crestchainVerificationUrl || oriluxVerificationUrl,
           verificationUrl,
           qrCodeUrl: certificateRecord.qr_code_url,
           htmlUrl: certificateHtmlUri,
@@ -1067,17 +1098,17 @@ serve(async (req: Request) => {
             blockNumber: oriluxBlockNumber,
             verificationUrl: oriluxVerificationUrl
           },
-          // Datos de BSC Mainnet (REALES)
-          bscMainnet: {
-            success: bscSuccess,
-            txHash: bscTxHash,
-            tokenId: bscTokenId,
-            blockNumber: bscBlockNumber,
-            contractAddress: BSC_CONTRACT_ADDRESS,
-            walletAddress: bscWalletAddress,
-            explorerUrl: bscVerificationUrl,
-            chainId: 56,
-            network: 'BSC Mainnet'
+          // Datos de CrestChain
+          crestchain: {
+            success: crestchainSuccess,
+            txHash: crestchainTxHash,
+            tokenId: crestchainTokenId,
+            blockNumber: crestchainBlockNumber,
+            contractAddress: CRESTCHAIN_CONTRACT_ADDRESS,
+            walletAddress: crestchainWalletAddress,
+            explorerUrl: crestchainVerificationUrl,
+            chainId: CRESTCHAIN_CHAIN_ID,
+            network: 'CrestChain'
           }
         }
       }),

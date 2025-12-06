@@ -169,7 +169,7 @@ async function renewSubscription(
           currentPeriodEnd: newPeriodEnd.toISOString(),
           transactionId: `auto-renew-${Date.now()}`,
           dashboardUrl: dashboardUrl,
-          supportEmail: "soporte@veralix.com",
+          supportEmail: "soporte@veralix.io",
         },
       },
     });

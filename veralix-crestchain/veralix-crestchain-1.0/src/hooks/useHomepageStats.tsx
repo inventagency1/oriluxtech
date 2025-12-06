@@ -43,7 +43,7 @@ export const useHomepageStats = () => {
         .from("nft_certificates")
         .select(`
           id,
-          jewelry_item_id,
+          property_id,
           is_verified
         `)
         .eq("is_verified", true);
@@ -53,7 +53,7 @@ export const useHomepageStats = () => {
       const certificateCount = certificates?.length || 0;
 
       // Get jewelry items to calculate total value
-      const jewelryIds = certificates?.map(cert => cert.jewelry_item_id) || [];
+      const jewelryIds = certificates?.map(cert => cert.property_id) || [];
       
       let totalValue = 0;
       if (jewelryIds.length > 0) {

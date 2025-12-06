@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Check, ArrowLeft, Shield, Sparkles, RefreshCw, Zap, Link2, CreditCard } from "lucide-react";
+import { Check, ArrowLeft, Shield, Sparkles, RefreshCw, Zap, Link2, CreditCard, Building2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,7 @@ import { useWompiDirectPayment } from "@/hooks/useWompiDirectPayment";
 import { useState } from "react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { QRBancolombiaPayment } from "@/components/QRBancolombiaPayment";
 
 interface CertificatePackage {
   id: string;
@@ -37,7 +38,8 @@ export function CertificateBundleCheckout({ pkg, onBack }: CertificateBundleChec
   const { openCheckout } = useWompiWidget();
   const { createPaymentLink, redirectToPayment, loading: directPaymentLoading } = useWompiDirectPayment();
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'direct' | 'widget'>('direct');
+  const [paymentMethod, setPaymentMethod] = useState<'qr' | 'direct' | 'widget'>('qr');
+  const [showQRPayment, setShowQRPayment] = useState(false);
   
   // Wompi public key - PRODUCCIÓN
   const WOMPI_PUBLIC_KEY = "pub_prod_XHaKFhY9SF4YB3GSxBhm7olkCxr7aiOQ";
@@ -177,18 +179,36 @@ export function CertificateBundleCheckout({ pkg, onBack }: CertificateBundleChec
     }
   };
 
+  // Calculate values
+  const amount = parseFloat(pkg.price.replace(/\./g, ''));
+  const tax = Math.round(amount * 0.19);
+  const totalAmount = amount + tax;
+
   const handlePurchase = () => {
-    if (paymentMethod === 'direct') {
+    if (paymentMethod === 'qr') {
+      setShowQRPayment(true);
+    } else if (paymentMethod === 'direct') {
       handleDirectPayment();
     } else {
       handleWidgetPayment();
     }
   };
 
-  // Calculate values
-  const amount = parseFloat(pkg.price.replace(/\./g, ''));
-  const tax = Math.round(amount * 0.19);
-  const totalAmount = amount + tax;
+  // Si está mostrando el pago QR, renderizar ese componente
+  if (showQRPayment) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <QRBancolombiaPayment
+          monto={totalAmount}
+          paqueteId={pkg.id}
+          paqueteNombre={pkg.name}
+          certificados={pkg.certificates}
+          onSuccess={() => navigate('/dashboard')}
+          onCancel={() => setShowQRPayment(false)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -280,33 +300,47 @@ export function CertificateBundleCheckout({ pkg, onBack }: CertificateBundleChec
               <CardContent>
                 <RadioGroup 
                   value={paymentMethod} 
-                  onValueChange={(value) => setPaymentMethod(value as 'direct' | 'widget')}
+                  onValueChange={(value) => setPaymentMethod(value as 'qr' | 'direct' | 'widget')}
                   className="space-y-3"
                 >
-                  <div className="flex items-start space-x-3 rounded-lg border p-4 cursor-pointer hover:bg-accent/50 transition-colors">
-                    <RadioGroupItem value="direct" id="direct" className="mt-1" />
-                    <Label htmlFor="direct" className="flex-1 cursor-pointer">
+                  <div className="flex items-start space-x-3 rounded-lg border-2 border-primary p-4 cursor-pointer bg-primary/5 transition-colors">
+                    <RadioGroupItem value="qr" id="qr" className="mt-1" />
+                    <Label htmlFor="qr" className="flex-1 cursor-pointer">
                       <div className="flex items-center gap-2 font-medium">
-                        <Link2 className="h-4 w-4 text-primary" />
-                        Pago Directo (Recomendado)
-                        <Badge variant="default" className="text-xs">Rápido</Badge>
+                        <Building2 className="h-4 w-4 text-primary" />
+                        QR Bancolombia / Nequi
+                        <Badge variant="default" className="text-xs bg-green-600">Recomendado</Badge>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Serás redirigido a la página segura de Wompi para completar tu pago
+                        Paga escaneando el código QR desde tu app de Bancolombia o Nequi
                       </p>
                     </Label>
                   </div>
 
-                  <div className="flex items-start space-x-3 rounded-lg border p-4 cursor-pointer hover:bg-accent/50 transition-colors">
-                    <RadioGroupItem value="widget" id="widget" className="mt-1" />
-                    <Label htmlFor="widget" className="flex-1 cursor-pointer">
+                  <div className="flex items-start space-x-3 rounded-lg border p-4 cursor-pointer hover:bg-accent/50 transition-colors opacity-50">
+                    <RadioGroupItem value="direct" id="direct" className="mt-1" disabled />
+                    <Label htmlFor="direct" className="flex-1 cursor-pointer">
                       <div className="flex items-center gap-2 font-medium">
-                        <CreditCard className="h-4 w-4 text-primary" />
-                        Widget Integrado
-                        <Badge variant="outline" className="text-xs">Beta</Badge>
+                        <Link2 className="h-4 w-4 text-muted-foreground" />
+                        Tarjeta de Crédito/Débito
+                        <Badge variant="outline" className="text-xs">Próximamente</Badge>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Paga sin salir de Veralix (puede requerir configuración adicional)
+                        Pago con tarjeta mediante Stripe (disponible pronto)
+                      </p>
+                    </Label>
+                  </div>
+
+                  <div className="flex items-start space-x-3 rounded-lg border p-4 cursor-pointer hover:bg-accent/50 transition-colors opacity-50">
+                    <RadioGroupItem value="widget" id="widget" className="mt-1" disabled />
+                    <Label htmlFor="widget" className="flex-1 cursor-pointer">
+                      <div className="flex items-center gap-2 font-medium">
+                        <CreditCard className="h-4 w-4 text-muted-foreground" />
+                        PSE / Otros
+                        <Badge variant="outline" className="text-xs">Próximamente</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Transferencia bancaria y otros métodos (disponible pronto)
                       </p>
                     </Label>
                   </div>
@@ -353,7 +387,10 @@ export function CertificateBundleCheckout({ pkg, onBack }: CertificateBundleChec
                     <span className="text-sm font-medium">Pago 100% seguro</span>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Tu transacción está protegida con encriptación de nivel bancario mediante Wompi
+                    {paymentMethod === 'qr' 
+                      ? 'Tu pago será verificado manualmente en un plazo de 24 horas hábiles'
+                      : 'Tu transacción está protegida con encriptación de nivel bancario'
+                    }
                   </p>
                 </div>
 
@@ -378,12 +415,21 @@ export function CertificateBundleCheckout({ pkg, onBack }: CertificateBundleChec
                   {(loading || directPaymentLoading) ? (
                     <>
                       <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                      Procesando con Wompi...
+                      Procesando...
                     </>
                   ) : (
                     <>
-                      <Shield className="w-4 h-4 mr-2" />
-                      {paymentMethod === 'direct' ? 'Ir a Pagar con Wompi' : `Pagar $${totalAmount.toLocaleString('es-CO')} COP con Widget`}
+                      {paymentMethod === 'qr' ? (
+                        <>
+                          <Building2 className="w-4 h-4 mr-2" />
+                          Pagar con QR Bancolombia
+                        </>
+                      ) : (
+                        <>
+                          <Shield className="w-4 h-4 mr-2" />
+                          {paymentMethod === 'direct' ? 'Ir a Pagar' : `Pagar $${totalAmount.toLocaleString('es-CO')} COP`}
+                        </>
+                      )}
                     </>
                   )}
                 </Button>

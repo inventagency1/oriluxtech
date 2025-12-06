@@ -96,10 +96,10 @@ export const JoyeroDashboard = () => {
         return;
       }
 
-      // Cargar certificados del joyero
-      const { data: certs, error: certsError } = await supabase
+      // Cargar certificados del joyero (sin join)
+      const { data: certsRaw, error: certsError } = await supabase
         .from('nft_certificates')
-        .select('*, jewelry_items(*)')
+        .select('*')
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
@@ -112,6 +112,12 @@ export const JoyeroDashboard = () => {
         });
         return;
       }
+
+      // Merge jewelry data into certificates
+      const certs = (certsRaw || []).map(cert => ({
+        ...cert,
+        jewelry_items: jewelry?.find(j => j.id === cert.property_id) || null
+      }));
 
       setJewelryItems(jewelry || []);
       setCertificates(certs || []);
@@ -155,7 +161,7 @@ export const JoyeroDashboard = () => {
 
   // Combinar joyas con sus certificados para mostrar
   const recentJewelry = jewelryItems.slice(0, 10).map(item => {
-    const certificate = certificates.find(cert => cert.jewelry_item_id === item.id);
+    const certificate = certificates.find(cert => cert.property_id === item.id);
     return {
       id: item.id, // Usar el ID real de la joya, no del certificado
       jewelryItemId: item.id, // Agregar ID específico para el certificado

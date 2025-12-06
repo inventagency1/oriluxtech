@@ -129,11 +129,6 @@ export function CertificateGenerationButton({
         </CardHeader>
         
         <CardContent className="space-y-4">
-          <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-md p-3 text-sm text-blue-800 dark:text-blue-200">
-            <strong>ℹ️ Modo MVP:</strong> Este certificado utiliza datos blockchain simulados para demostración. 
-            En producción se conectará a la red Crestchain real.
-          </div>
-          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">ID del Certificado</label>

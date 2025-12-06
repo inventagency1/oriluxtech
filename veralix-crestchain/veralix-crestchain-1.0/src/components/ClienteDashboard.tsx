@@ -49,10 +49,10 @@ export const ClienteDashboard = () => {
     try {
       setIsLoading(true);
 
-      // Cargar certificados del cliente
-      const { data: certs, error } = await supabase
+      // Cargar certificados del cliente (sin join)
+      const { data: certsRaw, error } = await supabase
         .from('nft_certificates')
-        .select('*, jewelry_items(*)')
+        .select('*')
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
@@ -65,6 +65,24 @@ export const ClienteDashboard = () => {
         });
         return;
       }
+
+      // Fetch jewelry items separately
+      const jewelryIds = (certsRaw || []).map(c => c.property_id).filter(Boolean);
+      let jewelryMap: Record<string, any> = {};
+      
+      if (jewelryIds.length > 0) {
+        const { data: jewelryData } = await supabase
+          .from('jewelry_items')
+          .select('*')
+          .in('id', jewelryIds);
+        
+        jewelryMap = (jewelryData || []).reduce((acc: any, j: any) => ({ ...acc, [j.id]: j }), {});
+      }
+
+      const certs = (certsRaw || []).map(cert => ({
+        ...cert,
+        jewelry_items: jewelryMap[cert.property_id] || null
+      }));
 
       setCertificates(certs || []);
 

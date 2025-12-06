@@ -6,7 +6,7 @@ import { toast } from "sonner";
 export interface CertificateHistoryItem {
   id: string;
   certificate_id: string;
-  jewelry_item_id: string;
+  property_id: string | null;
   user_id: string;
   is_verified: boolean;
   created_at: string;
@@ -66,25 +66,33 @@ export const useCertificateHistory = () => {
     try {
       setIsLoading(true);
 
-      // Fetch certificates with jewelry data
-      const { data: certsData, error: certsError } = await supabase
+      // Fetch certificates first (no join)
+      const { data: certsRaw, error: certsError } = await supabase
         .from('nft_certificates')
-        .select(`
-          *,
-          jewelry_items (
-            name,
-            type,
-            materials,
-            sale_price,
-            currency,
-            main_image_url,
-            images_count
-          )
-        `)
+        .select('*')
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
       if (certsError) throw certsError;
+
+      // Fetch jewelry items separately
+      const jewelryIds = (certsRaw || []).map(c => c.property_id).filter(Boolean);
+      let jewelryMap: Record<string, any> = {};
+      
+      if (jewelryIds.length > 0) {
+        const { data: jewelryData } = await supabase
+          .from('jewelry_items')
+          .select('id, name, type, materials, sale_price, currency, main_image_url, images_count')
+          .in('id', jewelryIds);
+        
+        jewelryMap = (jewelryData || []).reduce((acc, j) => ({ ...acc, [j.id]: j }), {});
+      }
+
+      // Merge data
+      const certsData = (certsRaw || []).map(cert => ({
+        ...cert,
+        jewelry_items: jewelryMap[cert.property_id] || null
+      }));
 
       // Fetch transfer counts for each certificate
       const certificatesWithTransfers = await Promise.all(

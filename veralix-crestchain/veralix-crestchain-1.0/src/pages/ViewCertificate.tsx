@@ -109,44 +109,14 @@ const ViewCertificate = () => {
       setLoading(true);
       setError(false);
 
-    const { data, error: fetchError } = await supabase
+    // Fetch certificate without join
+    const { data: certData, error: fetchError } = await supabase
       .from("nft_certificates")
-      .select(
-        `
-        certificate_id,
-        certificate_pdf_url,
-        social_image_url,
-        blockchain_verification_url,
-        transaction_hash,
-        block_number,
-        token_id,
-        contract_address,
-        qr_code_url,
-        created_at,
-        blockchain_network,
-        is_verified,
-        orilux_blockchain_hash,
-        orilux_blockchain_status,
-        orilux_verification_url,
-        orilux_block_number,
-        orilux_tx_hash,
-        jewelry_items (
-          id,
-          name,
-          type,
-          main_image_url,
-          description,
-          materials,
-          weight,
-          sale_price,
-          currency
-        )
-      `
-      )
+      .select("*")
       .eq("certificate_id", id)
       .single();
 
-      if (fetchError || !data) {
+      if (fetchError || !certData) {
         console.error("Error fetching certificate:", fetchError);
         setError(true);
         toast({
@@ -156,6 +126,22 @@ const ViewCertificate = () => {
         });
         return;
       }
+
+      // Fetch jewelry item separately
+      let jewelryData = null;
+      if (certData.jewelry_item_id) {
+        const { data: jewelry } = await supabase
+          .from("jewelry_items")
+          .select("id, name, type, main_image_url, description, materials, weight, sale_price, currency")
+          .eq("id", certData.jewelry_item_id)
+          .single();
+        jewelryData = jewelry;
+      }
+
+      const data = {
+        ...certData,
+        jewelry_items: jewelryData
+      };
 
       setCertificate(data as any);
 

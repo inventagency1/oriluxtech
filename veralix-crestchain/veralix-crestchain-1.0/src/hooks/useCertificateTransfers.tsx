@@ -24,7 +24,7 @@ export function useCertificateTransfers() {
       // 1. Verificar que el usuario es el owner del certificado
       const { data: certificate, error: certError } = await supabase
         .from('nft_certificates')
-        .select('id, owner_id, certificate_id, jewelry_item_id, jewelry_items(name)')
+        .select('id, owner_id, certificate_id, property_id')
         .eq('id', certificateId)
         .single();
 
@@ -90,7 +90,7 @@ export function useCertificateTransfers() {
           template: 'certificate-transfer-initiated',
           data: {
             certificateId: certificate.certificate_id,
-            jewelryName: certificate.jewelry_items?.name || 'Pieza de joyería',
+            jewelryName: 'Pieza de joyería',
             senderName: senderProfile?.full_name || 'Usuario',
             senderEmail: user.email,
             recipientName: recipientProfile.full_name || 'Usuario',
@@ -108,7 +108,7 @@ export function useCertificateTransfers() {
           template: 'certificate-transfer-received',
           data: {
             certificateId: certificate.certificate_id,
-            jewelryName: certificate.jewelry_items?.name || 'Pieza de joyería',
+            jewelryName: 'Pieza de joyería',
             senderName: senderProfile?.full_name || 'Usuario',
             senderEmail: user.email,
             recipientName: recipientProfile.full_name || 'Usuario',
@@ -163,8 +163,7 @@ export function useCertificateTransfers() {
           nft_certificates (
             id,
             certificate_id,
-            jewelry_item_id,
-            jewelry_items(name)
+            property_id
           ),
           from_user:profiles!certificate_transfers_from_user_id_fkey(full_name, email)
         `)

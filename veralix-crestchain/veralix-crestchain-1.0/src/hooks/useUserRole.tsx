@@ -59,14 +59,20 @@ export function useUserRole() {
         } else {
           const userRole = data?.role || null;
           
-          // Si el usuario no tiene rol, verificar si hay un rol pendiente del registro
-          if (!userRole) {
-            const pendingRole = localStorage.getItem('pendingUserRole');
-            if (pendingRole && (pendingRole === 'joyero' || pendingRole === 'cliente')) {
-              console.log('🔐 useUserRole: Found pending role from registration:', pendingRole);
+          // SIEMPRE verificar si hay un rol pendiente del registro
+          // Esto es necesario porque el trigger de Supabase asigna 'cliente' por defecto
+          const pendingRole = localStorage.getItem('pendingUserRole');
+          if (pendingRole && (pendingRole === 'joyero' || pendingRole === 'cliente')) {
+            // Solo actualizar si el rol pendiente es diferente al actual
+            if (pendingRole !== userRole) {
+              console.log('🔐 useUserRole: Found pending role from registration:', pendingRole, '(current:', userRole, ')');
               // Asignar el rol pendiente automáticamente
               await assignPendingRole(user.id, pendingRole);
               return; // El rol se actualizará después de asignarlo
+            } else {
+              // El rol ya es correcto, limpiar localStorage
+              console.log('🔐 useUserRole: Pending role matches current role, cleaning up');
+              localStorage.removeItem('pendingUserRole');
             }
           }
           
@@ -90,28 +96,28 @@ export function useUserRole() {
     try {
       console.log('🔐 useUserRole: Assigning pending role:', pendingRole);
       
-      // Insertar el rol en la tabla user_roles
-      const { error: insertError } = await supabase
+      // El trigger de Supabase ya crea un registro con 'cliente' por defecto
+      // Así que siempre hacemos UPDATE en lugar de INSERT
+      const { error: updateError } = await supabase
         .from('user_roles')
-        .insert({
-          user_id: userId,
-          role: pendingRole
-        });
-
-      if (insertError) {
-        // Si ya existe, intentar actualizar
-        if (insertError.code === '23505') { // Unique violation
-          const { error: updateError } = await supabase
-            .from('user_roles')
-            .update({ role: pendingRole })
-            .eq('user_id', userId);
-          
-          if (updateError) {
-            console.error('Error updating role:', updateError);
-            return;
-          }
-        } else {
+        .update({ role: pendingRole })
+        .eq('user_id', userId);
+      
+      if (updateError) {
+        console.error('Error updating role:', updateError);
+        
+        // Si falla el update, intentar insert (por si acaso no existe)
+        const { error: insertError } = await supabase
+          .from('user_roles')
+          .insert({
+            user_id: userId,
+            role: pendingRole
+          });
+        
+        if (insertError) {
           console.error('Error inserting role:', insertError);
+          setLoading(false);
+          setInitialCheckDone(true);
           return;
         }
       }
@@ -120,6 +126,16 @@ export function useUserRole() {
       
       // Limpiar el rol pendiente del localStorage
       localStorage.removeItem('pendingUserRole');
+      
+      // Verificar si hay redirección post-registro pendiente
+      const postRegisterRedirect = localStorage.getItem('postRegisterRedirect');
+      if (postRegisterRedirect) {
+        console.log('🔄 useUserRole: Post-register redirect to:', postRegisterRedirect);
+        localStorage.removeItem('postRegisterRedirect');
+        // Usar window.location para forzar la redirección
+        window.location.href = postRegisterRedirect;
+        return; // No continuar, la página se recargará
+      }
       
       // Actualizar el estado local
       setRole(pendingRole);

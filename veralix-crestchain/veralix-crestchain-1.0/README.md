@@ -310,7 +310,7 @@ Consulta el archivo LICENSE para más información.
 👨‍💻 Autor / Equipo
 Veralix Team
 📧 inventagency@outlook.com
-🌐 veralix.com
+🌐 veralix.io
 💼 LinkedIn • 🐦 Twitter
 
 🔗 Links Útiles

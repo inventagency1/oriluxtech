@@ -63,53 +63,81 @@ const Certificates = () => {
   }, [user, role, currentPage]);
 
   const loadCertificates = async () => {
+    if (!user?.id) {
+      console.log('No user ID, skipping certificate load');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
-
-      // Get total count
-      const { count } = await supabase
-        .from('nft_certificates')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user?.id);
-
-      setTotalCount(count || 0);
+      console.log('Loading certificates for user:', user.id);
 
       // Get paginated data
       const from = (currentPage - 1) * pageSize;
       const to = from + pageSize - 1;
 
-      const { data, error } = await supabase
+      console.log('Fetching certificates for user:', user.id, 'page:', currentPage);
+
+      // Query ONLY certificates - NO joins
+      const { data: certsData, error: certsError } = await supabase
         .from('nft_certificates')
-        .select(`
-          *,
-          jewelry_items (
-            id,
-            user_id,
-            name,
-            type,
-            materials,
-            sale_price,
-            currency,
-            status,
-            images_count,
-            main_image_url,
-            image_urls
-          )
-        `)
-        .eq('user_id', user?.id)
+        .select('id, certificate_id, property_id, user_id, owner_id, created_at, is_verified, blockchain_network, transaction_hash, token_id, metadata_uri, certificate_pdf_url, qr_code_url, social_image_url')
         .order('created_at', { ascending: false })
         .range(from, to);
 
+      if (certsError) {
+        console.error('Certificates query error:', certsError);
+        throw certsError;
+      }
+
+      console.log('Raw certificates:', certsData);
+
+      // Fetch jewelry items for these certificates
+      let data = certsData || [];
+      if (data.length > 0) {
+        const jewelryIds = data.map(c => c.property_id).filter(Boolean);
+        const { data: jewelryData, error: jewelryError } = await supabase
+          .from('jewelry_items')
+          .select('id, user_id, name, type, materials, sale_price, currency, status, images_count, main_image_url, image_urls')
+          .in('id', jewelryIds);
+
+        if (jewelryError) {
+          console.error('Jewelry query error:', jewelryError);
+        } else {
+          // Merge jewelry data into certificates
+          data = data.map(cert => ({
+            ...cert,
+            jewelry_items: jewelryData?.find(j => j.id === cert.property_id) || null
+          }));
+        }
+      }
+
+      const error = null;
+
       if (error) {
+        console.error('Query error details:', JSON.stringify(error, null, 2));
         throw error;
       }
 
-      setCertificates(data || []);
-    } catch (error) {
+      // Filter client-side if needed
+      const filteredData = data?.filter(cert => 
+        cert.user_id === user.id || cert.owner_id === user.id
+      ) || [];
+
+      console.log('All certificates from RLS:', data?.length || 0);
+      console.log('Filtered for user:', filteredData.length);
+      console.log('Certificates:', filteredData);
+
+      setTotalCount(filteredData.length);
+      setCertificates(filteredData);
+    } catch (error: any) {
       console.error('Error loading certificates:', error);
+      console.error('Error message:', error?.message);
+      console.error('Error code:', error?.code);
       toast({
         title: "Error",
-        description: "No se pudieron cargar los certificados",
+        description: error?.message || "No se pudieron cargar los certificados",
         variant: "destructive",
       });
     } finally {

@@ -61,28 +61,14 @@ const Verify = () => {
     setVerificationResult(null);
 
     try {
-      // Buscar certificado por certificate_id
-      const { data, error } = await supabase
+      // Buscar certificado por certificate_id (sin join)
+      const { data: certData, error } = await supabase
         .from('nft_certificates')
-        .select(`
-          *,
-          jewelry_items (
-            name,
-            type,
-            materials,
-            weight,
-            dimensions,
-            origin,
-            craftsman,
-            description,
-            sale_price,
-            currency
-          )
-        `)
+        .select('*')
         .eq('certificate_id', idToVerify)
         .single();
 
-      if (error || !data) {
+      if (error || !certData) {
         setNotFound(true);
         toast({
           title: "Certificado no encontrado",
@@ -91,6 +77,19 @@ const Verify = () => {
         });
         return;
       }
+
+      // Fetch jewelry item separately
+      let jewelryData = null;
+      if (certData.jewelry_item_id) {
+        const { data: jewelry } = await supabase
+          .from('jewelry_items')
+          .select('name, type, materials, weight, dimensions, origin, craftsman, description, sale_price, currency')
+          .eq('id', certData.jewelry_item_id)
+          .single();
+        jewelryData = jewelry;
+      }
+
+      const data = { ...certData, jewelry_items: jewelryData };
 
       // Mapear datos para la vista
       const verificationData = {

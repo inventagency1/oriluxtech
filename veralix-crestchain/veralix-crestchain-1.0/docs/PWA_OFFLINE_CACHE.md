@@ -202,13 +202,13 @@ caches.keys().then(names => {
 ## Instalación como App (iOS/Android)
 
 ### iOS (Safari):
-1. Abre veralix.com en Safari
+1. Abre veralix.io en Safari
 2. Toca el botón "Compartir" (cuadro con flecha)
 3. Scroll hacia abajo → "Añadir a la pantalla de inicio"
 4. Confirma → ¡Ya tienes la app instalada! 📱
 
 ### Android (Chrome):
-1. Abre veralix.com en Chrome
+1. Abre veralix.io en Chrome
 2. Toca el menú (⋮) → "Instalar app" o "Añadir a pantalla de inicio"
 3. Confirma → ¡App instalada! 📱
 

@@ -57,6 +57,7 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import UserManagement from "./pages/admin/UserManagement";
 import SubscriptionsOverview from "./pages/admin/SubscriptionsOverview";
 import WompiMonitoring from "./pages/admin/WompiMonitoring";
+import PagosQR from "./pages/admin/PagosQR";
 import Maintenance from "./pages/Maintenance";
 import EmailVerified from "./pages/EmailVerified";
 import RegistroJoyeria from "./pages/RegistroJoyeria";
@@ -252,6 +253,14 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <WompiMonitoring />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/pagos-qr" 
+                element={
+                  <ProtectedRoute>
+                    <PagosQR />
                   </ProtectedRoute>
                 } 
               />

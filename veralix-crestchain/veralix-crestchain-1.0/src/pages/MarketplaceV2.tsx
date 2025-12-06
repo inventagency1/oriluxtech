@@ -118,6 +118,7 @@ export default function MarketplaceV2() {
   };
 
   if (error) {
+    console.error('Marketplace error:', error);
     return (
       <AppLayout>
         <div className="container py-8">
@@ -126,6 +127,13 @@ export default function MarketplaceV2() {
             <p className="text-muted-foreground mt-2">
               {error instanceof Error ? error.message : 'Error desconocido'}
             </p>
+            <Button 
+              variant="outline" 
+              className="mt-4"
+              onClick={() => window.location.reload()}
+            >
+              Reintentar
+            </Button>
           </div>
         </div>
       </AppLayout>

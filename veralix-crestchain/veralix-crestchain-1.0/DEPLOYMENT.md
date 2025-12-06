@@ -716,7 +716,7 @@ npm run preview
 ## 👥 Soporte
 
 **Equipo Veralix**  
-Email: soporte@veralix.com  
+Email: soporte@veralix.io  
 GitHub Issues: https://github.com/tu-usuario/veralix-platform/issues
 
 ---

@@ -248,7 +248,7 @@ export type Database = {
           currency: string
           discount_applied: number | null
           id: string
-          jewelry_item_id: string
+          property_id: string | null
           metadata: Json | null
           paid_at: string | null
           payment_status: string
@@ -267,7 +267,7 @@ export type Database = {
           currency?: string
           discount_applied?: number | null
           id?: string
-          jewelry_item_id: string
+          property_id: string | null
           metadata?: Json | null
           paid_at?: string | null
           payment_status?: string
@@ -605,7 +605,7 @@ export type Database = {
           description: string | null
           featured: boolean
           id: string
-          jewelry_item_id: string
+          property_id: string | null
           likes: number
           price: number
           review_count: number | null
@@ -623,7 +623,7 @@ export type Database = {
           description?: string | null
           featured?: boolean
           id?: string
-          jewelry_item_id: string
+          property_id: string | null
           likes?: number
           price: number
           review_count?: number | null
@@ -749,7 +749,7 @@ export type Database = {
           created_at: string
           id: string
           is_verified: boolean | null
-          jewelry_item_id: string
+          property_id: string | null
           memorable_message: string | null
           metadata_uri: string | null
           orilux_block_number: number | null
@@ -781,7 +781,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_verified?: boolean | null
-          jewelry_item_id: string
+          property_id: string | null
           memorable_message?: string | null
           metadata_uri?: string | null
           orilux_block_number?: number | null
@@ -958,7 +958,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          jewelry_item_id: string
+          property_id: string | null
           marketplace_listing_id: string
           order_id: string
           quantity: number
@@ -968,7 +968,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
-          jewelry_item_id: string
+          property_id: string | null
           marketplace_listing_id: string
           order_id: string
           quantity?: number
@@ -1500,7 +1500,7 @@ export type Database = {
           invoice_number: string | null
           invoice_pdf_url: string | null
           invoice_xml_url: string | null
-          jewelry_item_id: string | null
+          property_id: string | null | null
           metadata: Json | null
           nft_certificate_id: string | null
           status: string
@@ -1727,7 +1727,7 @@ export type Database = {
           created_at: string | null
           is_verified: boolean | null
           jewelry_image: string | null
-          jewelry_item_id: string | null
+          property_id: string | null | null
           jewelry_name: string | null
           jewelry_type: Database["public"]["Enums"]["jewelry_type"] | null
           qr_code_url: string | null
@@ -1759,7 +1759,7 @@ export type Database = {
           jewelry_dimensions: string | null
           jewelry_image_urls: string[] | null
           jewelry_images_count: number | null
-          jewelry_item_id: string | null
+          property_id: string | null | null
           jewelry_main_image_url: string | null
           jewelry_materials: string[] | null
           jewelry_name: string | null
@@ -1798,7 +1798,7 @@ export type Database = {
           description: string | null
           featured: boolean | null
           id: string | null
-          jewelry_item_id: string | null
+          property_id: string | null | null
           likes: number | null
           price: number | null
           review_count: number | null
@@ -1866,7 +1866,7 @@ export type Database = {
           description: string
           featured: boolean
           id: string
-          jewelry_item_id: string
+          property_id: string | null
           likes: number
           price: number
           review_count: number
@@ -1992,7 +1992,7 @@ export type Database = {
           description: string
           featured: boolean
           id: string
-          jewelry_item_id: string
+          property_id: string | null
           likes: number
           price: number
           relevance: number
